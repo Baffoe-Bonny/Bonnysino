@@ -4,8 +4,8 @@ const multipliers = {
     6: 10,   7: 12,   8: 15,   9: 20,   10: 25
 };
 
-// API base URL for local development
-const API_BASE_URL = 'http://localhost:3000';
+// API base URL - will be dynamically set
+let API_BASE_URL = 'http://localhost:3000';
 
 // API base URL - configure for Netlify deployment
 const payouts = {
@@ -37,6 +37,18 @@ try {
     console.log('Audio initialized successfully');
 } catch (error) {
     console.log('Audio initialization failed:', error);
+}
+
+// Initialize API URL based on environment
+function initializeApiUrl() {
+    // Check if we're in development (localhost) or production
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        API_BASE_URL = 'http://localhost:3000';
+    } else {
+        // For production with Render backend
+        API_BASE_URL = 'https://bonnysino-3.onrender.com';
+    }
+    console.log('API Base URL set to:', API_BASE_URL);
 }
 
 // Play professional background beat
@@ -1176,5 +1188,6 @@ setInterval(() => {
 
 // Initialize gold particles when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    initializeApiUrl(); // Initialize API URL first
     createGoldParticles();
 });
