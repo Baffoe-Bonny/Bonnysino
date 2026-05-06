@@ -1,0 +1,270 @@
+[
+  {
+    "id": "mos1e3dq8o2cojna1y6",
+    "userId": "mos153m1bijp6u4a5ab",
+    "username": "Bonny",
+    "selectedNumbers": [
+      3,
+      4
+    ],
+    "stake": 10,
+    "winningNumber": 1,
+    "result": "lose",
+    "payout": 0,
+    "previousBalance": 40,
+    "newBalance": 40,
+    "timestamp": "2026-05-05T02:56:16.286Z"
+  },
+  {
+    "id": "mos1hgmk9n308cnmp55",
+    "userId": "mos153m1bijp6u4a5ab",
+    "username": "Bonny",
+    "selectedNumbers": [
+      2
+    ],
+    "stake": 40,
+    "winningNumber": 5,
+    "result": "lose",
+    "payout": 0,
+    "previousBalance": 0,
+    "newBalance": 0,
+    "timestamp": "2026-05-05T02:58:53.420Z"
+  },
+  {
+    "id": "mos1qju54xn19fupxew",
+    "userId": "mos153m1bijp6u4a5ab",
+    "username": "Bonny",
+    "amount": 300,
+    "momoNumber": "0598241911",
+    "notes": "",
+    "status": "pending",
+    "previousBalance": 3000,
+    "timestamp": "2026-05-05T03:05:57.485Z",
+    "type": "withdrawal",
+    "result": "pending"
+  },
+  {
+    "id": "mos1rfzkr8ncsmkmavk",
+    "userId": "mos153m1bijp6u4a5ab",
+    "username": "Bonny",
+    "selectedNumbers": [
+      2,
+      3
+    ],
+    "stake": 20,
+    "winningNumber": 5,
+    "result": "lose",
+    "payout": 0,
+    "previousBalance": 2680,
+    "newBalance": 2680,
+    "timestamp": "2026-05-05T03:06:39.152Z"
+  },
+  {
+    "id": "mos1ro11w1ayy9zkw6g",
+    "userId": "mos153m1bijp6u4a5ab",
+    "username": "Bonny",
+    "selectedNumbers": [
+      10,
+      1
+    ],
+    "stake": 20,
+    "winningNumber": 3,
+    "result": "lose",
+    "payout": 0,
+    "previousBalance": 2660,
+    "newBalance": 2660,
+    "timestamp": "2026-05-05T03:06:49.573Z"
+  },
+  {
+    "id": "mos1see7s94g257di5",
+    "userId": "mos153m1bijp6u4a5ab",
+    "username": "Bonny",
+    "selectedNumbers": [
+      1,
+      2
+    ],
+    "stake": 30,
+    "winningNumber": 3,
+    "result": "lose",
+    "payout": 0,
+    "previousBalance": 2630,
+    "newBalance": 2630,
+    "timestamp": "2026-05-05T03:07:23.743Z"
+  },
+  {
+    "id": "mos20pqftd1rz16xpdj",
+    "userId": "mos153m1bijp6u4a5ab",
+    "username": "Bonny",
+    "selectedNumbers": [
+      2,
+      3
+    ],
+    "stake": 30,
+    "winningNumber": 4,
+    "result": "lose",
+    "payout": 0,
+    "previousBalance": 2600,
+    "newBalance": 2600,
+    "timestamp": "2026-05-05T03:13:51.687Z"
+  },
+  {
+    "id": "mos20y9h35u3662o9zb",
+    "userId": "mos153m1bijp6u4a5ab",
+    "username": "Bonny",
+    "selectedNumbers": [
+      2,
+      3
+    ],
+    "stake": 30,
+    "winningNumber": 5,
+    "result": "lose",
+    "payout": 0,
+    "previousBalance": 2570,
+    "newBalance": 2570,
+    "timestamp": "2026-05-05T03:14:02.741Z"
+  },
+  {
+    "id": "mos21vf2378tmlpoxz8",
+    "userId": "mos153m1bijp6u4a5ab",
+    "username": "Bonny",
+    "selectedNumbers": [
+      9,
+      8
+    ],
+    "stake": 500,
+    "winningNumber": 6,
+    "result": "lose",
+    "payout": 0,
+    "previousBalance": 2070,
+    "newBalance": 2070,
+    "timestamp": "2026-05-05T03:14:45.710Z"
+  },
+  {
+    "id": "mos2251adv6u1lapgz",
+    "userId": "mos153m1bijp6u4a5ab",
+    "username": "Bonny",
+    "selectedNumbers": [
+      3,
+      4
+    ],
+    "stake": 500,
+    "winningNumber": 1,
+    "result": "lose",
+    "payout": 0,
+    "previousBalance": 1570,
+    "newBalance": 1570,
+    "timestamp": "2026-05-05T03:14:58.174Z"
+  },
+  {
+    "id": "mos22df5v0mlclaj1dq",
+    "userId": "mos153m1bijp6u4a5ab",
+    "username": "Bonny",
+    "selectedNumbers": [
+      3,
+      2
+    ],
+    "stake": 500,
+    "winningNumber": 4,
+    "result": "lose",
+    "payout": 0,
+    "previousBalance": 1070,
+    "newBalance": 1070,
+    "timestamp": "2026-05-05T03:15:09.041Z"
+  },
+  {
+    "id": "mos243ugdjzs5oc7nfw",
+    "userId": "mos153m1bijp6u4a5ab",
+    "username": "Bonny",
+    "selectedNumbers": [
+      2,
+      3
+    ],
+    "stake": 500,
+    "winningNumber": 9,
+    "result": "lose",
+    "payout": 0,
+    "previousBalance": 570,
+    "newBalance": 570,
+    "timestamp": "2026-05-05T03:16:29.944Z"
+  },
+  {
+    "id": "mos24hviqpmz0vtpl28",
+    "userId": "mos153m1bijp6u4a5ab",
+    "username": "Bonny",
+    "selectedNumbers": [
+      2,
+      3
+    ],
+    "stake": 500,
+    "winningNumber": 3,
+    "result": "win",
+    "payout": 3000,
+    "previousBalance": 3070,
+    "newBalance": 3070,
+    "timestamp": "2026-05-05T03:16:48.126Z"
+  },
+  {
+    "id": "mos25db8j06805v8vtg",
+    "userId": "mos153m1bijp6u4a5ab",
+    "username": "Bonny",
+    "selectedNumbers": [
+      2,
+      3
+    ],
+    "stake": 500,
+    "winningNumber": 4,
+    "result": "lose",
+    "payout": 0,
+    "previousBalance": 2570,
+    "newBalance": 2570,
+    "timestamp": "2026-05-05T03:17:28.868Z"
+  },
+  {
+    "id": "mos25k971eyclv63t8p",
+    "userId": "mos153m1bijp6u4a5ab",
+    "username": "Bonny",
+    "selectedNumbers": [
+      1,
+      10
+    ],
+    "stake": 500,
+    "winningNumber": 6,
+    "result": "lose",
+    "payout": 0,
+    "previousBalance": 2070,
+    "newBalance": 2070,
+    "timestamp": "2026-05-05T03:17:37.867Z"
+  },
+  {
+    "id": "mos25tssthc55kcmhr",
+    "userId": "mos153m1bijp6u4a5ab",
+    "username": "Bonny",
+    "selectedNumbers": [
+      2,
+      3
+    ],
+    "stake": 500,
+    "winningNumber": 10,
+    "result": "lose",
+    "payout": 0,
+    "previousBalance": 1570,
+    "newBalance": 1570,
+    "timestamp": "2026-05-05T03:17:50.236Z"
+  },
+  {
+    "id": "mos26bjeniutln0yts",
+    "userId": "mos153m1bijp6u4a5ab",
+    "username": "Bonny",
+    "selectedNumbers": [
+      3,
+      4
+    ],
+    "stake": 498,
+    "winningNumber": 2,
+    "result": "lose",
+    "payout": 0,
+    "previousBalance": 1072,
+    "newBalance": 1072,
+    "timestamp": "2026-05-05T03:18:13.226Z"
+  }
+]

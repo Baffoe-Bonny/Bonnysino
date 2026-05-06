@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BONNYSINO - Premium Casino Gaming</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;900&display=swap');
+        
+        :root {
+            --gold: #FFD700;
+            --gold-dark: #B8860B;
+            --gold-light: #FFED4E;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(ellipse at center, #1a1a1a 0%, #000000 100%);
+            overflow-x: hidden;
+        }
+        
+        .bebas {
+            font-family: 'Bebas Neue', cursive;
+        }
+        
+        .gold-glow {
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8),
+                         0 0 40px rgba(255, 215, 0, 0.6),
+                         0 0 60px rgba(255, 215, 0, 0.4);
+        }
+        
+        .gold-border {
+            border: 2px solid var(--gold);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3),
+                        inset 0 0 20px rgba(255, 215, 0, 0.1);
+        }
+        
+        .gold-gradient {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+        }
+        
+        .wheel-container {
+            position: relative;
+            width: 450px;
+            height: 450px;
+            margin: 0 auto;
+        }
+        
+        .wheel-number {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #2a2a2a 0%, #1a1a1a 100%);
+            border: 2px solid var(--gold);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .wheel-number:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+        }
+        
+        .wheel-number.selected {
+            background: var(--gold);
+            color: #000;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+        }
+        
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #000;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+        }
+        
+        .spin-button {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 50%, var(--gold) 100%);
+            transition: all 0.3s ease;
+            animation: goldPulse 2s infinite;
+        }
+        
+        @keyframes goldPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.8); }
+        }
+        
+        .spin-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.6);
+        }
+        
+        .wheel-pointer {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 40px solid var(--gold);
+            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+            z-index: 10;
+        }
+        
+        .wheel-pointer::before {
+            content: '';
+            position: absolute;
+            top: -45px;
+            left: -8px;
+            width: 16px;
+            height: 16px;
+            background: var(--gold);
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        }
+        
+        .wheel-pointer-glow {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.6) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: pointerGlow 2s ease-in-out infinite;
+            z-index: 9;
+        }
+        
+        @keyframes pointerGlow {
+            0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.6; }
+            50% { transform: translateX(-50%) scale(1.2); opacity: 0.8; }
+        }
+        
+        .coin-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            opacity: 0.15;
+            background-image: 
+                radial-gradient(circle at 15% 15%, var(--gold) 0%, transparent 40%),
+                radial-gradient(circle at 85% 15%, var(--gold) 0%, transparent 40%),
+                radial-gradient(circle at 15% 85%, var(--gold) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, var(--gold) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, var(--gold-light) 0%, transparent 60%),
+                linear-gradient(45deg, transparent 30%, rgba(255, 215, 0, 0.1) 50%, transparent 70%),
+                linear-gradient(-45deg, transparent 30%, rgba(255, 215, 0, 0.1) 50%, transparent 70%);
+            animation: goldShimmer 8s ease-in-out infinite;
+        }
+        
+        @keyframes goldShimmer {
+            0%, 100% { opacity: 0.15; }
+            50% { opacity: 0.25; }
+        }
+        
+        .crown-decoration {
+            position: fixed;
+            font-size: 3rem;
+            color: var(--gold);
+            opacity: 0.1;
+            pointer-events: none;
+            animation: floatCrown 6s ease-in-out infinite;
+        }
+        
+        .crown-1 { top: 10%; left: 10%; animation-delay: 0s; }
+        .crown-2 { top: 10%; right: 10%; animation-delay: 1s; }
+        .crown-3 { bottom: 10%; left: 10%; animation-delay: 2s; }
+        .crown-4 { bottom: 10%; right: 10%; animation-delay: 3s; }
+        .crown-5 { top: 50%; left: 5%; animation-delay: 4s; }
+        .crown-6 { top: 50%; right: 5%; animation-delay: 5s; }
+        
+        @keyframes floatCrown {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+        
+        .money-decoration {
+            position: fixed;
+            font-size: 2.5rem;
+            color: var(--gold);
+            opacity: 0.15;
+            pointer-events: none;
+            animation: sparkleMoney 4s ease-in-out infinite;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+        
+        .money-1 { top: 15%; left: 25%; animation-delay: 0.5s; }
+        .money-2 { top: 15%; right: 25%; animation-delay: 1.5s; }
+        .money-3 { bottom: 15%; left: 25%; animation-delay: 2.5s; }
+        .money-4 { bottom: 15%; right: 25%; animation-delay: 3.5s; }
+        .money-5 { top: 35%; left: 15%; animation-delay: 0s; }
+        .money-6 { top: 35%; right: 15%; animation-delay: 2s; }
+        .money-7 { top: 65%; left: 15%; animation-delay: 1s; }
+        .money-8 { top: 65%; right: 15%; animation-delay: 3s; }
+        
+        @keyframes sparkleMoney {
+            0%, 100% { transform: translateY(0px) scale(1) rotate(0deg); opacity: 0.15; }
+            25% { transform: translateY(-10px) scale(1.1) rotate(5deg); opacity: 0.25; }
+            50% { transform: translateY(-5px) scale(1.2) rotate(-5deg); opacity: 0.3; }
+            75% { transform: translateY(-15px) scale(1.1) rotate(5deg); opacity: 0.25; }
+        }
+        
+        .gold-particles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .gold-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--gold);
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: fallParticle 15s linear infinite;
+        }
+        
+        @keyframes fallParticle {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+        
+        .feature-card {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--gold);
+            backdrop-filter: blur(10px);
+        }
+        
+        @media (max-width: 640px) {
+            .wheel-container {
+                width: 320px;
+                height: 320px;
+            }
+            
+            .wheel-number {
+                width: 45px;
+                height: 45px;
+                font-size: 0.75rem;
+            }
+            
+            .wheel-center {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white relative">
+    <div class="coin-bg"></div>
+    
+    <!-- Crown Decorations -->
+    <i class="fas fa-crown crown-decoration crown-1"></i>
+    <i class="fas fa-crown crown-decoration crown-2"></i>
+    <i class="fas fa-crown crown-decoration crown-3"></i>
+    <i class="fas fa-crown crown-decoration crown-4"></i>
+    <i class="fas fa-crown crown-decoration crown-5"></i>
+    <i class="fas fa-crown crown-decoration crown-6"></i>
+    
+    <!-- Money Decorations -->
+    <i class="fas fa-dollar-sign money-decoration money-1"></i>
+    <i class="fas fa-money-bill-wave money-decoration money-2"></i>
+    <i class="fas fa-coins money-decoration money-3"></i>
+    <i class="fas fa-dollar-sign money-decoration money-4"></i>
+    <i class="fas fa-money-bill-wave money-decoration money-5"></i>
+    <i class="fas fa-coins money-decoration money-6"></i>
+    <i class="fas fa-dollar-sign money-decoration money-7"></i>
+    <i class="fas fa-money-bill-wave money-decoration money-8"></i>
+    
+    <!-- Gold Particles -->
+    <div class="gold-particles" id="goldParticles"></div>
+    
+    <!-- Header -->
+    <header class="text-center py-8 relative z-10">
+        <div class="flex items-center justify-center mb-4">
+            <i class="fas fa-crown text-5xl text-yellow-400 mr-4 gold-glow"></i>
+            <h1 class="bebas text-7xl md:text-8xl gold-glow" style="color: var(--gold);">
+                BONNYSINO
+            </h1>
+            <i class="fas fa-circle-dollar-sign text-5xl text-yellow-400 ml-4 gold-glow"></i>
+        </div>
+        <p class="text-xl md:text-2xl text-yellow-300 font-semibold">SPIN • PICK • WIN BIG</p>
+        <p class="text-lg text-yellow-200 mt-2">10 NUMBERS. ENDLESS POSSIBILITIES. REAL WINS.</p>
+    </header>
+
+    <!-- Authentication Modals -->
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-900 border-2 border-yellow-400 rounded-lg p-8 max-w-md w-full mx-4">
+            <h2 class="text-3xl font-bold text-yellow-400 mb-6 text-center">Login to BONNYSINO</h2>
+            
+            <form id="loginForm">
+                <div class="mb-4">
+                    <label class="block text-yellow-300 mb-2">Username</label>
+                    <input type="text" id="loginUsername" required
+                           class="w-full px-4 py-3 bg-black border border-yellow-400 rounded-lg text-white focus:outline-none focus:border-yellow-300">
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-yellow-300 mb-2">Password</label>
+                    <input type="password" id="loginPassword" required
+                           class="w-full px-4 py-3 bg-black border border-yellow-400 rounded-lg text-white focus:outline-none focus:border-yellow-300">
+                </div>
+                
+                <button type="submit" 
+                        class="w-full bg-yellow-400 text-black font-bold py-3 rounded-lg hover:bg-yellow-300 transition-colors">
+                    <i class="fas fa-sign-in-alt mr-2"></i>LOGIN
+                </button>
+            </form>
+            
+            <div class="mt-4 text-center">
+                <p class="text-yellow-300">Don't have an account?</p>
+                <button id="showRegisterBtn" class="text-yellow-400 hover:text-yellow-300 underline">
+                    Register here
+                </button>
+            </div>
+            
+            <button id="closeLoginModal" class="absolute top-4 right-4 text-yellow-400 hover:text-yellow-300">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-900 border-2 border-yellow-400 rounded-lg p-8 max-w-md w-full mx-4">
+            <h2 class="text-3xl font-bold text-yellow-400 mb-6 text-center">Join BONNYSINO</h2>
+            
+            <form id="registerForm">
+                <div class="mb-4">
+                    <label class="block text-yellow-300 mb-2">Username</label>
+                    <input type="text" id="registerUsername" required minlength="3"
+                           class="w-full px-4 py-3 bg-black border border-yellow-400 rounded-lg text-white focus:outline-none focus:border-yellow-300">
+                    <p class="text-xs text-gray-400 mt-1">Minimum 3 characters</p>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-yellow-300 mb-2">MoMo Number</label>
+                    <input type="text" id="registerMomoNumber" required
+                           class="w-full px-4 py-3 bg-black border border-yellow-400 rounded-lg text-white focus:outline-none focus:border-yellow-300">
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-yellow-300 mb-2">Password</label>
+                    <input type="password" id="registerPassword" required minlength="6"
+                           class="w-full px-4 py-3 bg-black border border-yellow-400 rounded-lg text-white focus:outline-none focus:border-yellow-300">
+                    <p class="text-xs text-gray-400 mt-1">Minimum 6 characters</p>
+                </div>
+                
+                <button type="submit" 
+                        class="w-full bg-yellow-400 text-black font-bold py-3 rounded-lg hover:bg-yellow-300 transition-colors">
+                    <i class="fas fa-user-plus mr-2"></i>REGISTER
+                </button>
+            </form>
+            
+            <div class="mt-4 text-center">
+                <p class="text-yellow-300">Already have an account?</p>
+                <button id="showLoginBtn" class="text-yellow-400 hover:text-yellow-300 underline">
+                    Login here
+                </button>
+            </div>
+            
+            <button id="closeRegisterModal" class="absolute top-4 right-4 text-yellow-400 hover:text-yellow-300">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Deposit Modal -->
+    <div id="depositModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-900 border-2 border-yellow-400 rounded-lg p-8 max-w-md w-full mx-4">
+            <h2 class="text-3xl font-bold text-yellow-400 mb-6 text-center">Add Funds</h2>
+            
+            <form id="depositForm">
+                <div class="mb-4">
+                    <label class="block text-yellow-300 mb-2">Deposit Amount (GHC)</label>
+                    <input type="number" id="depositAmount" required min="1" max="10000" step="0.01"
+                           class="w-full px-4 py-3 bg-black border border-yellow-400 rounded-lg text-white focus:outline-none focus:border-yellow-300">
+                    <p class="text-xs text-gray-400 mt-1">Minimum: 1 GHC, Maximum: 10,000 GHC</p>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-yellow-300 mb-2">Payment Method</label>
+                    <div class="bg-gray-800 border border-yellow-400 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-credit-card text-yellow-400 mr-3"></i>
+                            <span class="text-yellow-300">Paystack (Card, Bank Transfer, USSD)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" id="paystackPayBtn"
+                        class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition-colors">
+                    <i class="fas fa-lock mr-2"></i>PAY WITH PAYSTACK
+                </button>
+            </form>
+            
+            <div class="mt-4 text-center">
+                <p class="text-gray-400 text-sm">
+                    <i class="fas fa-shield-alt mr-1"></i>
+                    Secure payment powered by Paystack
+                </p>
+            </div>
+            
+            <button id="closeDepositModal" class="absolute top-4 right-4 text-yellow-400 hover:text-yellow-300">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Payment Processing Modal -->
+    <div id="paymentProcessingModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-900 border-2 border-yellow-400 rounded-lg p-8 max-w-md w-full mx-4 text-center">
+            <div class="mb-4">
+                <i class="fas fa-spinner fa-spin text-6xl text-yellow-400"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-yellow-400 mb-4">Processing Payment...</h3>
+            <p class="text-gray-300">Please wait while we process your payment</p>
+        </div>
+    </div>
+
+    <!-- Withdrawal Modal -->
+    <div id="withdrawModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-900 border-2 border-yellow-400 rounded-lg p-8 max-w-md w-full mx-4">
+            <h2 class="text-3xl font-bold text-yellow-400 mb-6 text-center">Withdraw Funds</h2>
+            
+            <form id="withdrawForm">
+                <div class="mb-4">
+                    <label class="block text-yellow-300 mb-2">Available Balance</label>
+                    <div class="bg-gray-800 border border-yellow-400 rounded-lg p-3">
+                        <span id="withdrawBalanceDisplay" class="text-2xl font-bold text-green-400">0 GHC</span>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-yellow-300 mb-2">Withdrawal Amount (GHC)</label>
+                    <input type="number" id="withdrawAmount" required min="1" max="10000" step="0.01"
+                           class="w-full px-4 py-3 bg-black border border-yellow-400 rounded-lg text-white focus:outline-none focus:border-yellow-300">
+                    <p class="text-xs text-gray-400 mt-1">Minimum: 1 GHC, Maximum: Your balance</p>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-yellow-300 mb-2">Withdrawal Method</label>
+                    <div class="bg-gray-800 border border-yellow-400 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-mobile-alt text-yellow-400 mr-3"></i>
+                            <span class="text-yellow-300">MoMo Transfer</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-yellow-300 mb-2">MoMo Number</label>
+                    <input type="text" id="withdrawMomoNumber" required
+                           class="w-full px-4 py-3 bg-black border border-yellow-400 rounded-lg text-white focus:outline-none focus:border-yellow-300"
+                           placeholder="Enter your MoMo number">
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-yellow-300 mb-2">Notes (Optional)</label>
+                    <textarea id="withdrawNotes" rows="3"
+                              class="w-full px-4 py-3 bg-black border border-yellow-400 rounded-lg text-white focus:outline-none focus:border-yellow-300"
+                              placeholder="Any additional notes..."></textarea>
+                </div>
+                
+                <button type="submit" id="withdrawSubmitBtn"
+                        class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-paper-plane mr-2"></i>REQUEST WITHDRAWAL
+                </button>
+            </form>
+            
+            <div class="mt-4 text-center">
+                <p class="text-gray-400 text-sm">
+                    <i class="fas fa-clock mr-1"></i>
+                    Withdrawals are processed within 24 hours
+                </p>
+            </div>
+            
+            <button id="closeWithdrawModal" class="absolute top-4 right-4 text-yellow-400 hover:text-yellow-300">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- User Info Bar -->
+    <div id="userInfoBar" class="bg-gray-900 border-b-2 border-yellow-400 py-4 px-6 hidden">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-6">
+                <div class="text-yellow-300">
+                    <i class="fas fa-user mr-2"></i>
+                    <span id="userDisplay">Guest</span>
+                </div>
+                <div class="text-yellow-300">
+                    <i class="fas fa-wallet mr-2"></i>
+                    Balance: <span id="balanceDisplay">0</span> GHC
+                </div>
+            </div>
+            <div class="flex space-x-2">
+                <button id="depositBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                    <i class="fas fa-plus-circle mr-2"></i>Deposit
+                </button>
+                <button id="withdrawBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-minus-circle mr-2"></i>Withdraw
+                </button>
+                <button id="logoutBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Game Section -->
+    <main class="container mx-auto px-4 py-8 relative z-10">
+        <div class="grid lg:grid-cols-2 gap-8 items-center">
+            <!-- Wheel -->
+            <div class="relative">
+                <div class="wheel-pointer"></div>
+                <div class="wheel-pointer-glow"></div>
+                <div class="wheel-container" id="wheelContainer">
+                    <div class="wheel-center">
+                        B
+                        <i class="fas fa-crown text-xs"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="space-y-6">
+                <div class="feature-card rounded-lg p-6">
+                    <h3 class="text-2xl font-bold text-yellow-400 mb-4">Place Your Bet</h3>
+                    
+                    <div class="mb-6">
+                        <label class="block text-yellow-300 mb-2">Stake Amount (GHC)</label>
+                        <input type="number" id="stakeInput" min="1" max="1000" value="10" 
+                               class="w-full px-4 py-3 bg-black border-2 border-yellow-400 rounded-lg text-white text-lg focus:outline-none focus:border-yellow-300">
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-yellow-300 mb-2">Select Your Number</label>
+                        <div id="selectedNumber" class="text-3xl font-bold text-center py-4 text-yellow-400">
+                            No number selected
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <div class="bg-gray-800 border border-yellow-400 rounded-lg p-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-yellow-300 font-semibold">Your Balance:</span>
+                                <span id="gameBalanceDisplay" class="text-2xl font-bold text-green-400">0 GHC</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="spinButton" class="spin-button w-full py-4 rounded-lg text-black font-bold text-xl">
+                        <i class="fas fa-dice mr-2"></i>
+                        SPIN TO WIN
+                    </button>
+
+                    <div id="resultDisplay" class="mt-4 text-center text-lg hidden">
+                        <p class="text-yellow-400 font-bold"></p>
+                    </div>
+                </div>
+
+                <!-- Payouts Info -->
+                <div class="feature-card rounded-lg p-6">
+                    <h3 class="text-xl font-bold text-yellow-400 mb-3">Payouts</h3>
+                    <p class="text-yellow-300 mb-2">Your Winning = Stake × Multiplier</p>
+                    <div class="text-sm text-gray-300">
+                        <p>Example: Stake 10 GHC on Number 10</p>
+                        <p class="text-yellow-400">Winning = 10 × 25 = 250 GHC</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How to Play Section -->
+        <section class="mt-12 grid md:grid-cols-3 gap-6">
+            <div class="feature-card rounded-lg p-6 text-center">
+                <i class="fas fa-hand-pointer text-4xl text-yellow-400 mb-4"></i>
+                <h3 class="text-xl font-bold text-yellow-400 mb-2">PICK YOUR NUMBER</h3>
+                <p class="text-gray-300">Choose any number from 1 to 10 on the wheel</p>
+            </div>
+            <div class="feature-card rounded-lg p-6 text-center">
+                <i class="fas fa-coins text-4xl text-yellow-400 mb-4"></i>
+                <h3 class="text-xl font-bold text-yellow-400 mb-2">PLACE YOUR STAKE</h3>
+                <p class="text-gray-300">Set your bet amount and confirm your selection</p>
+            </div>
+            <div class="feature-card rounded-lg p-6 text-center">
+                <i class="fas fa-sync-alt text-4xl text-yellow-400 mb-4"></i>
+                <h3 class="text-xl font-bold text-yellow-400 mb-2">SPIN & WIN</h3>
+                <p class="text-gray-300">Hit spin and watch your winnings multiply!</p>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section class="mt-12 grid md:grid-cols-4 gap-4">
+            <div class="text-center">
+                <i class="fas fa-shield-alt text-3xl text-yellow-400 mb-2"></i>
+                <p class="text-sm font-semibold">FAIR PLAY</p>
+            </div>
+            <div class="text-center">
+                <i class="fas fa-bolt text-3xl text-yellow-400 mb-2"></i>
+                <p class="text-sm font-semibold">INSTANT WINS</p>
+            </div>
+            <div class="text-center">
+                <i class="fas fa-lock text-3xl text-yellow-400 mb-2"></i>
+                <p class="text-sm font-semibold">SAFE & SECURE</p>
+            </div>
+            <div class="text-center">
+                <i class="fas fa-trophy text-3xl text-yellow-400 mb-2"></i>
+                <p class="text-sm font-semibold">BIG REWARDS</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-16 py-8 text-center border-t border-yellow-400 relative z-10">
+        <div class="container mx-auto px-4">
+            <p class="text-yellow-400 font-bold text-lg mb-4">
+                GAMING CAN BE ADDICTIVE. STAKE WISELY. PLAY RESPONSIBLY.
+            </p>
+            <p class="text-yellow-300 text-xl font-semibold">
+                ARE YOU READY TO SPIN? PLAY SMART. WIN BIG. ONLY AT BONNYSINO
+            </p>
+        </div>
+    </footer>
+
+    <!-- Result Popup Modal -->
+    <div id="resultPopup" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden">
+        <div class="bg-gradient-to-br from-gray-900 to-black border-4 border-yellow-400 rounded-2xl p-8 max-w-md w-full mx-4 transform transition-all duration-500 scale-0" id="popupContent">
+            <div class="text-center">
+                <div class="mb-6">
+                    <i class="fas fa-trophy text-6xl text-yellow-400 mb-4" id="resultIcon"></i>
+                    <h2 class="text-3xl font-bold text-yellow-400 mb-2" id="resultTitle">SPIN RESULT</h2>
+                </div>
+                
+                <div class="mb-6 space-y-3">
+                    <div class="bg-black bg-opacity-50 rounded-lg p-4">
+                        <p class="text-gray-300 text-sm mb-1">Your Selection(s)</p>
+                        <p class="text-2xl font-bold text-yellow-300" id="selectedNumbersDisplay">-</p>
+                    </div>
+                    
+                    <div class="bg-black bg-opacity-50 rounded-lg p-4">
+                        <p class="text-gray-300 text-sm mb-1">Winning Number</p>
+                        <p class="text-3xl font-bold text-yellow-400" id="winningNumberDisplay">-</p>
+                    </div>
+                    
+                    <div class="bg-black bg-opacity-50 rounded-lg p-4" id="resultDetails">
+                        <!-- Result details will be inserted here -->
+                    </div>
+                </div>
+                
+                <button onclick="closeResultPopup()" class="w-full py-3 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold rounded-lg hover:from-yellow-500 hover:to-yellow-700 transition-all duration-300">
+                    PLAY AGAIN
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="backgroundMusic" loop>
+        <source src="https://www.soundjay.com/misc/sounds/casino-background.mp3" type="audio/mpeg">
+        <source src="https://www.soundjay.com/misc/sounds/casino-background.ogg" type="audio/ogg">
+    </audio>
+    
+    <audio id="spinSound">
+        <source src="https://www.soundjay.com/misc/sounds/wheel-spin.mp3" type="audio/mpeg">
+        <source src="https://www.soundjay.com/misc/sounds/wheel-spin.ogg" type="audio/ogg">
+    </audio>
+    
+    <audio id="tickingSound" loop>
+        <source src="https://www.soundjay.com/misc/sounds/ticking.mp3" type="audio/mpeg">
+        <source src="https://www.soundjay.com/misc/sounds/ticking.ogg" type="audio/ogg">
+    </audio>
+    
+    <audio id="winSound">
+        <source src="https://www.soundjay.com/misc/sounds/win-sound.mp3" type="audio/mpeg">
+        <source src="https://www.soundjay.com/misc/sounds/win-sound.ogg" type="audio/ogg">
+    </audio>
+    
+    <audio id="loseSound">
+        <source src="https://www.soundjay.com/misc/sounds/lose-sound.mp3" type="audio/mpeg">
+        <source src="https://www.soundjay.com/misc/sounds/lose-sound.ogg" type="audio/ogg">
+    </audio>
+
+    <script src="script.js"></script>
+</body>
+</html>
