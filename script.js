@@ -45,8 +45,8 @@ function initializeApiUrl() {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         API_BASE_URL = 'http://localhost:3000';
     } else {
-        // For production with Render backend
-        API_BASE_URL = 'https://bonnysino-3.onrender.com';
+        // For production with combined frontend/backend on Render
+        API_BASE_URL = window.location.origin;
     }
     console.log('API Base URL set to:', API_BASE_URL);
 }
