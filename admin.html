@@ -95,6 +95,118 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.5rem;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+            
+            .card {
+                margin: 0.5rem;
+                padding: 1rem !important;
+            }
+            
+            .stat-card {
+                padding: 0.75rem !important;
+            }
+            
+            h1 {
+                font-size: 2rem !important;
+            }
+            
+            h2 {
+                font-size: 1.5rem !important;
+            }
+            
+            h3 {
+                font-size: 1.25rem !important;
+            }
+            
+            /* Table adjustments */
+            table {
+                font-size: 0.875rem;
+            }
+            
+            th, td {
+                padding: 0.5rem 0.25rem !important;
+            }
+            
+            /* Button adjustments */
+            .btn-gold, .btn-danger {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+            
+            /* Form adjustments */
+            input, select, textarea {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+            
+            /* Modal adjustments */
+            .fixed > div {
+                margin: 1rem;
+                max-width: calc(100% - 2rem);
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            /* Extra small mobile adjustments */
+            h1 {
+                font-size: 1.5rem !important;
+            }
+            
+            h2 {
+                font-size: 1.25rem !important;
+            }
+            
+            .card {
+                margin: 0.25rem;
+                padding: 0.75rem !important;
+            }
+            
+            .stat-card {
+                padding: 0.5rem !important;
+            }
+            
+            /* Stack stat cards vertically */
+            .grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4 {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.5rem !important;
+            }
+            
+            /* Hide some table columns on very small screens */
+            .table th:nth-child(3),
+            .table td:nth-child(3) {
+                display: none;
+            }
+            
+            /* Button text adjustments */
+            button span {
+                display: none;
+            }
+            
+            /* Compact table */
+            .user-row {
+                padding: 0.25rem;
+            }
+            
+            /* Make buttons full width on small screens */
+            .flex.gap-2 {
+                flex-direction: column;
+            }
+            
+            .flex.gap-2 button {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
