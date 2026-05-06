@@ -357,6 +357,9 @@ function initializeWheel() {
     }
     
     function createWheelNumbers() {
+        // Store current selections
+        const currentSelections = [...selectedNumbers];
+        
         // Clear existing numbers
         wheelContainer.querySelectorAll('.wheel-number').forEach(el => el.remove());
         
@@ -385,9 +388,17 @@ function initializeWheel() {
                 <div style="font-size: ${multiplierSize};">x${multipliers[num]}</div>
             `;
             
+            // Restore selection if this number was selected
+            if (currentSelections.includes(num)) {
+                numberDiv.classList.add('selected');
+            }
+            
             numberDiv.addEventListener('click', () => selectNumber(num));
             wheelContainer.appendChild(numberDiv);
         });
+        
+        // Restore selected numbers array
+        selectedNumbers = currentSelections;
     }
     
     // Create initial wheel
@@ -494,6 +505,13 @@ async function spinWheel() {
     
     // Call backend API
     try {
+        console.log('Making spin request to:', `${API_BASE_URL}/spin`);
+        console.log('Request data:', {
+            selectedNumbers: selectedNumbers,
+            stake: stake,
+            userId: currentUser.id
+        });
+        
         const response = await fetch(`${API_BASE_URL}/spin`, {
             method: 'POST',
             headers: {
@@ -505,21 +523,17 @@ async function spinWheel() {
                 userId: currentUser.id
             })
         });
+
+        console.log('Response status:', response.status);
         
         if (!response.ok) {
-            const errorData = await response.json();
-            if (errorData.error === 'Insufficient balance') {
-                showMessage(`Insufficient balance! You have ${errorData.currentBalance} GHC, but need ${errorData.requiredStake} GHC.`, 'error');
-                // Reset UI on insufficient balance
-                isSpinning = false;
-                spinButton.disabled = false;
-                spinButton.innerHTML = '<i class="fas fa-dice mr-2"></i>SPIN TO WIN';
-                return;
-            }
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
-        
+
         const gameResult = await response.json();
+        console.log('Spin result:', gameResult);
         
         // Update user balance in localStorage and UI
         if (gameResult.newBalance !== undefined) {
