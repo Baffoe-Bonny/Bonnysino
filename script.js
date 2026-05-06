@@ -919,11 +919,13 @@ function initializePaystackPayment(amount, email, userId) {
 // Verify payment with backend
 async function verifyPayment(reference, userId) {
     try {
+        console.log('Starting payment verification for reference:', reference);
+        console.log('User ID:', userId);
+        console.log('API URL:', API_BASE_URL);
+        
         // Test mode - skip Paystack verification and add test amount
         if (reference === 'test_mode') {
-            const testAmount = 100; // Test 100 GHC
-            
-            // Update user balance directly
+            const testAmount = 100; // Test amount
             currentUser.balance += testAmount;
             localStorage.setItem('bonnysino_user', JSON.stringify(currentUser));
             updateBalanceDisplay();
@@ -934,18 +936,31 @@ async function verifyPayment(reference, userId) {
             return;
         }
         
+        console.log('Making verification request to:', `${API_BASE_URL}/verify-payment`);
+        
         const response = await fetch(`${API_BASE_URL}/verify-payment`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ reference, userId })
+            body: JSON.stringify({
+                reference: reference,
+                userId: userId
+            })
         });
+
+        console.log('Verification response status:', response.status);
         
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Verification error response:', errorText);
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+        }
+
         const result = await response.json();
+        console.log('Verification result:', result);
         
-        if (response.ok && result.success) {
-            // Update user balance in localStorage and UI
+        if (result.success) {
             currentUser.balance = result.newBalance;
             localStorage.setItem('bonnysino_user', JSON.stringify(currentUser));
             updateBalanceDisplay();
@@ -954,13 +969,16 @@ async function verifyPayment(reference, userId) {
             closeDepositModal();
             showMessage(`Payment successful! ${result.amount} GHC added to your balance.`, 'success');
         } else {
+            console.error('Verification failed:', result);
             closePaymentProcessingModal();
             showMessage(result.error || 'Payment verification failed', 'error');
         }
     } catch (error) {
         console.error('Payment verification error:', error);
+        console.error('Full error details:', error.message);
+        console.error('Stack trace:', error.stack);
         closePaymentProcessingModal();
-        showMessage('Failed to verify payment. Please contact support.', 'error');
+        showMessage(`Payment verification failed: ${error.message}`, 'error');
     }
 }
 
