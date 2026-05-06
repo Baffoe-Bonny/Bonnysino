@@ -1,11 +1,15 @@
 // Game configuration
 const multipliers = {
-    1: 5,    2: 5.5,  3: 6,    4: 7,    5: 8,
+    1: 5,    2: 5.5,    3: 6,    4: 7,    5: 8,
     6: 10,   7: 12,   8: 15,   9: 20,   10: 25
 };
 
+// API base URL for local development
+const API_BASE_URL = 'http://localhost:3000';
+
+// API base URL - configure for Netlify deployment
 const payouts = {
-    1: 25,    2: 27.50,  3: 30,    4: 35,    5: 40,
+    1: 25,    2: 27.50,    3: 30,    4: 35,    5: 40,
     6: 50,    7: 60,     8: 75,    9: 100,   10: 125
 };
 
@@ -23,13 +27,16 @@ let isPlaying = false;
 function initializeAudio() {
     if (audioInitialized) return;
     
-    try {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        audioInitialized = true;
-        console.log('Audio initialized successfully');
-    } catch (error) {
-        console.log('Audio initialization failed:', error);
-    }
+    // Initialize API URL when DOM is ready
+    initializeApiUrl();
+}
+
+try {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    audioInitialized = true;
+    console.log('Audio initialized successfully');
+} catch (error) {
+    console.log('Audio initialization failed:', error);
 }
 
 // Play professional background beat
@@ -441,7 +448,7 @@ async function spinWheel() {
     
     // Call backend API
     try {
-        const response = await fetch('http://localhost:3000/spin', {
+        const response = await fetch(`${API_BASE_URL}/spin`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -760,7 +767,7 @@ function hideLoginPrompt() {
 // Login function
 async function login(username, password) {
     try {
-        const response = await fetch('http://localhost:3000/login', {
+        const response = await fetch(`${API_BASE_URL}/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -791,7 +798,7 @@ async function login(username, password) {
 // Register function
 async function register(username, momoNumber, password) {
     try {
-        const response = await fetch('http://localhost:3000/register', {
+        const response = await fetch(`${API_BASE_URL}/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -867,7 +874,7 @@ async function verifyPayment(reference, userId) {
             return;
         }
         
-        const response = await fetch('http://localhost:3000/verify-payment', {
+        const response = await fetch(`${API_BASE_URL}/verify-payment`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -959,7 +966,7 @@ function closeWithdrawModal() {
 // Process withdrawal
 async function processWithdrawal(amount, momoNumber, notes) {
     try {
-        const response = await fetch('http://localhost:3000/withdraw', {
+        const response = await fetch(`${API_BASE_URL}/withdraw`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

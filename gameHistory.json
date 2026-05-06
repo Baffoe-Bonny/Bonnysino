@@ -266,5 +266,36 @@
     "previousBalance": 1072,
     "newBalance": 1072,
     "timestamp": "2026-05-05T03:18:13.226Z"
+  },
+  {
+    "id": "mou32iqdp8w6hrdljg",
+    "userId": "mos1a97trbzzmk99zlk",
+    "username": "Nana",
+    "selectedNumbers": [
+      2
+    ],
+    "stake": 10,
+    "winningNumber": 8,
+    "result": "lose",
+    "payout": 0,
+    "previousBalance": 10,
+    "newBalance": 10,
+    "timestamp": "2026-05-06T13:18:47.894Z"
+  },
+  {
+    "id": "mou32s764z5owqr3uts",
+    "userId": "mos1a97trbzzmk99zlk",
+    "username": "Nana",
+    "selectedNumbers": [
+      2,
+      3
+    ],
+    "stake": 10,
+    "winningNumber": 5,
+    "result": "lose",
+    "payout": 0,
+    "previousBalance": 0,
+    "newBalance": 0,
+    "timestamp": "2026-05-06T13:19:00.162Z"
   }
 ]
