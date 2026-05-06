@@ -340,30 +340,64 @@ function attemptAutoPlay() {
     }, 1000);
 }
 
-// Initialize the wheel
 function initializeWheel() {
     const wheelContainer = document.getElementById('wheelContainer');
     const wheelNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     
-    wheelNumbers.forEach((num, index) => {
-        const angle = (index * 36) - 90; // 360/10 = 36 degrees per number, start from top
-        const radius = 170; // Distance from center - increased for better visibility
-        const x = Math.cos(angle * Math.PI / 180) * radius;
-        const y = Math.sin(angle * Math.PI / 180) * radius;
+    // Get container size for responsive positioning
+    function getResponsiveRadius() {
+        const containerWidth = wheelContainer.offsetWidth;
+        if (window.innerWidth <= 480) {
+            return containerWidth * 0.35; // Very small screens
+        } else if (window.innerWidth <= 768) {
+            return containerWidth * 0.4; // Mobile/tablets
+        } else {
+            return 170; // Desktop
+        }
+    }
+    
+    function createWheelNumbers() {
+        // Clear existing numbers
+        wheelContainer.querySelectorAll('.wheel-number').forEach(el => el.remove());
         
-        const numberDiv = document.createElement('div');
-        numberDiv.className = 'wheel-number';
-        numberDiv.dataset.number = num;
-        numberDiv.style.left = `calc(50% + ${x}px - 30px)`;
-        numberDiv.style.top = `calc(50% + ${y}px - 30px)`;
+        const radius = getResponsiveRadius();
         
-        numberDiv.innerHTML = `
-            <div class="text-lg font-bold">${num}</div>
-            <div class="text-xs text-yellow-400">x${multipliers[num]}</div>
-        `;
-        
-        numberDiv.addEventListener('click', () => selectNumber(num));
-        wheelContainer.appendChild(numberDiv);
+        wheelNumbers.forEach((num, index) => {
+            const angle = (index * 36) - 90; // 360/10 = 36 degrees per number, start from top
+            const x = Math.cos(angle * Math.PI / 180) * radius;
+            const y = Math.sin(angle * Math.PI / 180) * radius;
+            
+            const numberDiv = document.createElement('div');
+            numberDiv.className = 'wheel-number';
+            numberDiv.dataset.number = num;
+            
+            // Responsive positioning
+            const numberSize = window.innerWidth <= 480 ? 15 : 25;
+            numberDiv.style.left = `calc(50% + ${x}px - ${numberSize}px)`;
+            numberDiv.style.top = `calc(50% + ${y}px - ${numberSize}px)`;
+            
+            // Responsive font sizes
+            const fontSize = window.innerWidth <= 480 ? '0.5rem' : window.innerWidth <= 768 ? '0.7rem' : '0.8rem';
+            const multiplierSize = window.innerWidth <= 480 ? '0.4rem' : window.innerWidth <= 768 ? '0.5rem' : '0.6rem';
+            
+            numberDiv.innerHTML = `
+                <div style="font-size: ${fontSize}; font-weight: bold;">${num}</div>
+                <div style="font-size: ${multiplierSize};">x${multipliers[num]}</div>
+            `;
+            
+            numberDiv.addEventListener('click', () => selectNumber(num));
+            wheelContainer.appendChild(numberDiv);
+        });
+    }
+    
+    // Create initial wheel
+    createWheelNumbers();
+    
+    // Recreate on window resize for responsiveness
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(createWheelNumbers, 250);
     });
 }
 

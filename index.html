@@ -278,23 +278,29 @@
                 font-size: 0.9rem !important;
             }
             
-            /* Wheel adjustments - make it much smaller */
+            /* Wheel adjustments - make it properly sized for mobile */
             .wheel-container {
-                width: min(160px, 50vw);
-                height: min(160px, 50vw);
+                width: min(200px, 60vw);
+                height: min(200px, 60vw);
                 margin-bottom: 1rem;
             }
             
             .wheel-number {
-                width: min(25px, 6vw);
-                height: min(25px, 6vw);
-                font-size: min(0.7rem, 1.8vw);
+                width: min(35px, 8vw);
+                height: min(35px, 8vw);
+                font-size: min(0.8rem, 2vw);
+                border: 1.5px solid var(--gold);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 2px;
             }
             
             .wheel-center {
-                width: min(30px, 8vw);
-                height: min(30px, 8vw);
-                font-size: min(0.8rem, 2vw);
+                width: min(35px, 9vw);
+                height: min(35px, 9vw);
+                font-size: min(0.9rem, 2.2vw);
             }
             
             .wheel-pointer {
@@ -372,21 +378,27 @@
             }
             
             .wheel-container {
-                width: min(120px, 40vw);
-                height: min(120px, 40vw);
+                width: min(160px, 50vw);
+                height: min(160px, 50vw);
                 margin-bottom: 0.5rem;
             }
             
             .wheel-number {
-                width: min(20px, 5vw);
-                height: min(20px, 5vw);
-                font-size: min(0.6rem, 1.5vw);
+                width: min(28px, 7vw);
+                height: min(28px, 7vw);
+                font-size: min(0.7rem, 1.8vw);
+                border: 1px solid var(--gold);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 1px;
             }
             
             .wheel-center {
-                width: min(25px, 6vw);
-                height: min(25px, 6vw);
-                font-size: min(0.7rem, 1.8vw);
+                width: min(30px, 8vw);
+                height: min(30px, 8vw);
+                font-size: min(0.8rem, 2vw);
             }
             
             .wheel-pointer {
