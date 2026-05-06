@@ -116,7 +116,7 @@
         
         .wheel-pointer {
             position: absolute;
-            top: -60px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
@@ -142,7 +142,7 @@
         
         .wheel-pointer-glow {
             position: absolute;
-            top: -75px;
+            top: 5px;
             left: 50%;
             transform: translateX(-50%);
             width: 40px;
@@ -699,9 +699,9 @@
         <div class="grid lg:grid-cols-2 xl:grid-cols-2 gap-8 items-center lg:gap-8 xl:gap-12">
             <!-- Wheel -->
             <div class="relative lg:col-span-2 xl:col-span-1">
+                <div class="wheel-pointer"></div>
+                <div class="wheel-pointer-glow"></div>
                 <div class="wheel-container mx-auto max-w-sm md:max-w-md lg:max-w-lg" id="wheelContainer">
-                    <div class="wheel-pointer"></div>
-                    <div class="wheel-pointer-glow"></div>
                     <div class="wheel-center">
                         B
                         <i class="fas fa-crown text-xs"></i>
