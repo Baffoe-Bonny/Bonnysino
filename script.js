@@ -919,6 +919,9 @@ function initializePaystackPayment(amount, email, userId) {
 // Verify payment with backend
 async function verifyPayment(reference, userId) {
     try {
+        // Ensure API URL is initialized
+        initializeApiUrl();
+        
         console.log('Starting payment verification for reference:', reference);
         console.log('User ID:', userId);
         console.log('API URL:', API_BASE_URL);
@@ -938,16 +941,35 @@ async function verifyPayment(reference, userId) {
         
         console.log('Making verification request to:', `${API_BASE_URL}/verify-payment`);
         
-        const response = await fetch(`${API_BASE_URL}/verify-payment`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                reference: reference,
-                userId: userId
-            })
-        });
+        let response;
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        while (retryCount < maxRetries) {
+            try {
+                response = await fetch(`${API_BASE_URL}/verify-payment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        reference: reference,
+                        userId: userId
+                    })
+                });
+                break; // Success, exit retry loop
+            } catch (fetchError) {
+                retryCount++;
+                console.error(`Fetch attempt ${retryCount} failed:`, fetchError);
+                
+                if (retryCount >= maxRetries) {
+                    throw new Error(`Failed to connect to server after ${maxRetries} attempts: ${fetchError.message}`);
+                }
+                
+                // Wait before retry
+                await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+            }
+        }
 
         console.log('Verification response status:', response.status);
         
