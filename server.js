@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const fs = require('fs').promises;
 const paystack = require('paystack')(process.env.PAYSTACK_SECRET_KEY || 'sk_test_1bc83307e5ae9d9e50ba99cd0c8c73393d519739');
 
