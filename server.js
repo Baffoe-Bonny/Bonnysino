@@ -11,10 +11,56 @@ const PORT = process.env.PORT || 3000;
 // Initialize game history on server start
 loadGameHistory();
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+// Middleware - Enhanced CORS for mobile and desktop compatibility
+app.use(cors({
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        // Allow all origins in development, specific ones in production
+        const allowedOrigins = [
+            'http://localhost:3000',
+            'http://localhost:3001',
+            'http://127.0.0.1:3000',
+            'http://127.0.0.1:3001',
+            'https://bonnysino-3.onrender.com',
+            'https://bonnysino.onrender.com',
+            'https://bonnysino-api.onrender.com',
+            // Add your deployed frontend URLs here
+        ];
+        
+        if (process.env.NODE_ENV === 'development') {
+            // In development, allow all origins
+            return callback(null, true);
+        }
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            return callback(null, true);
+        } else {
+            // Log the blocked origin for debugging
+            console.log('CORS blocked origin:', origin);
+            return callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// Handle pre-flight requests
+app.options('*', (req, res) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.sendStatus(200);
+});
+
+app.use(express.json({ limit: '10mb' })); // Increase limit for mobile data
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.static(path.join(__dirname), {
+    maxAge: process.env.NODE_ENV === 'production' ? '1y' : '0'
+}));
 
 // Game multipliers
 const multipliers = {
@@ -475,6 +521,24 @@ app.get('/health', (req, res) => {
     });
 });
 
+// GET / endpoint
+app.get('/', (req, res) => {
+    res.json({ 
+        message: 'Bonnysino API Server is running!',
+        version: '1.0.0',
+        status: 'active'
+    });
+});
+
+// GET /test endpoint for connectivity testing
+app.get('/test', (req, res) => {
+    res.json({ 
+        message: 'API connectivity test successful',
+        timestamp: new Date().toISOString(),
+        status: 'ok'
+    });
+});
+
 // Admin endpoints
 // POST /admin/login
 app.post('/admin/login', async (req, res) => {
@@ -670,27 +734,120 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Error handling middleware
+// Enhanced error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({
-        error: 'Something went wrong!'
+    console.error('Server error:', {
+        message: err.message,
+        stack: err.stack,
+        url: req.url,
+        method: req.method,
+        timestamp: new Date().toISOString()
+    });
+    
+    // Don't expose error details in production
+    const message = process.env.NODE_ENV === 'production' 
+        ? 'Internal server error' 
+        : err.message;
+    
+    res.status(err.status || 500).json({
+        error: message,
+        // Include error details in development
+        ...(process.env.NODE_ENV === 'development' && {
+            stack: err.stack,
+            details: err
+        })
     });
 });
 
-// 404 handler
+// Enhanced 404 handler with better logging
 app.use((req, res) => {
+    console.warn('404 - Endpoint not found:', {
+        url: req.url,
+        method: req.method,
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        timestamp: new Date().toISOString()
+    });
+    
     res.status(404).json({
-        error: 'Endpoint not found'
+        error: 'Endpoint not found',
+        message: `Cannot ${req.method} ${req.url}`,
+        availableEndpoints: [
+            'GET /',
+            'GET /test',
+            'GET /health',
+            'GET /api/multipliers',
+            'POST /register',
+            'POST /login',
+            'POST /spin',
+            'POST /verify-payment',
+            'POST /withdraw',
+            'POST /admin/login',
+            'GET /admin/users',
+            'GET /admin/game-history',
+            'GET /admin/statistics',
+            'POST /admin/adjust-balance'
+        ]
     });
 });
 
-// Start server
-app.listen(PORT, () => {
+// Start server with enhanced error handling
+const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`🎰 BONNYSINO Server is running on port ${PORT}`);
+    console.log(`📍 Local: http://localhost:${PORT}`);
+    console.log(`📍 Network: http://0.0.0.0:${PORT}`);
     console.log(`📍 Spin endpoint: http://localhost:${PORT}/spin`);
     console.log(`📍 Health check: http://localhost:${PORT}/health`);
     console.log(`📍 Multipliers: http://localhost:${PORT}/api/multipliers`);
+    console.log(`📍 Admin login: http://localhost:${PORT}/admin/login`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+});
+
+// Handle server errors gracefully
+server.on('error', (error) => {
+    if (error.syscall !== 'listen') {
+        throw error;
+    }
+
+    const bind = typeof PORT === 'string'
+        ? 'Pipe ' + PORT
+        : 'Port ' + PORT;
+
+    switch (error.code) {
+        case 'EACCES':
+            console.error(`${bind} requires elevated privileges`);
+            process.exit(1);
+            break;
+        case 'EADDRINUSE':
+            console.error(`${bind} is already in use`);
+            console.log('Trying alternative port...');
+            // Try alternative port
+            const altPort = PORT + 1;
+            server.listen(altPort, '0.0.0.0', () => {
+                console.log(`🎰 BONNYSINO Server is running on alternative port ${altPort}`);
+                console.log(`📍 Local: http://localhost:${altPort}`);
+            });
+            break;
+        default:
+            throw error;
+    }
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully');
+    server.close(() => {
+        console.log('Process terminated');
+        process.exit(0);
+    });
+});
+
+process.on('SIGINT', () => {
+    console.log('SIGINT received, shutting down gracefully');
+    server.close(() => {
+        console.log('Process terminated');
+        process.exit(0);
+    });
 });
 
 module.exports = app;

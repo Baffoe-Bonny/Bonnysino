@@ -39,46 +39,102 @@ try {
     console.log('Audio initialization failed:', error);
 }
 
-// Initialize API URL based on environment
+// Initialize API URL based on environment with better fallback logic
 function initializeApiUrl() {
     // Check if we're in development (localhost) or production
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         API_BASE_URL = 'http://localhost:3000';
+    } else if (window.location.hostname.includes('render.com')) {
+        // For Render deployment, use the same origin
+        API_BASE_URL = window.location.origin;
+    } else if (window.location.hostname.includes('netlify.app')) {
+        // For Netlify deployment, try to use the same origin first
+        API_BASE_URL = window.location.origin;
     } else {
-        // For production with combined frontend/backend on Render
+        // For other domains, try same origin first
         API_BASE_URL = window.location.origin;
     }
+    
     console.log('API Base URL set to:', API_BASE_URL);
     
     // Test connectivity with a simple request
     testApiConnectivity();
 }
 
-// Test API connectivity
+// Test API connectivity with improved fallback logic
 async function testApiConnectivity() {
     try {
         console.log('Testing API connectivity to:', API_BASE_URL);
+        
+        // Add timeout to prevent hanging
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
         const response = await fetch(`${API_BASE_URL}/test`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-            }
+            },
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
         
         if (response.ok) {
             console.log('API connectivity test passed');
         } else {
             console.warn('API connectivity test failed, response:', response.status);
+            // Try fallback if not localhost
+            if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                tryFallbackUrls();
+            }
         }
     } catch (error) {
         console.error('API connectivity test failed:', error);
-        // Fallback to hardcoded Render URL if needed
+        // Only try fallbacks if not in localhost development
         if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-            console.log('Attempting fallback to Render URL...');
-            API_BASE_URL = 'https://bonnysino-3.onrender.com';
-            console.log('Fallback API Base URL set to:', API_BASE_URL);
+            tryFallbackUrls();
         }
     }
+}
+
+// Try fallback URLs for production
+async function tryFallbackUrls() {
+    const fallbackUrls = [
+        'https://bonnysino-3.onrender.com',
+        'https://bonnysino.onrender.com',
+        'https://bonnysino-api.onrender.com'
+    ];
+    
+    for (const fallbackUrl of fallbackUrls) {
+        try {
+            console.log('Trying fallback URL:', fallbackUrl);
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+            
+            const response = await fetch(`${fallbackUrl}/test`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                console.log('Fallback URL worked:', fallbackUrl);
+                API_BASE_URL = fallbackUrl;
+                showMessage('Connected to backup server', 'success');
+                return;
+            }
+        } catch (error) {
+            console.log('Fallback URL failed:', fallbackUrl, error);
+        }
+    }
+    
+    console.error('All fallback URLs failed');
 }
 
 // Play professional background beat
@@ -497,7 +553,7 @@ function updateSelectedNumberDisplay() {
     }
 }
 
-// Spin the wheel
+// Spin the wheel with improved error handling
 async function spinWheel() {
     // Ensure API URL is initialized
     initializeApiUrl();
@@ -529,7 +585,7 @@ async function spinWheel() {
     // Hide previous result
     document.getElementById('resultDisplay').classList.add('hidden');
     
-    // Call backend API
+    // Call backend API with improved error handling
     try {
         console.log('Making spin request to:', `${API_BASE_URL}/spin`);
         console.log('Request data:', {
@@ -537,6 +593,10 @@ async function spinWheel() {
             stake: stake,
             userId: currentUser.id
         });
+        
+        // Add timeout and better error handling
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
         
         const response = await fetch(`${API_BASE_URL}/spin`, {
             method: 'POST',
@@ -547,14 +607,25 @@ async function spinWheel() {
                 selectedNumbers: selectedNumbers,
                 stake: stake,
                 userId: currentUser.id
-            })
+            }),
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
 
         console.log('Response status:', response.status);
         
         if (!response.ok) {
             const errorText = await response.text();
             console.error('Error response:', errorText);
+            
+            // Try fallback URLs if primary fails
+            if (response.status === 0 || response.status >= 500) {
+                if (await tryFallbackSpin(stake)) {
+                    return; // Fallback succeeded
+                }
+            }
+            
             throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
 
@@ -607,13 +678,110 @@ async function spinWheel() {
         
     } catch (error) {
         console.error('Error calling backend API:', error);
-        showMessage('Failed to connect to game server. Please try again.', 'error');
+        
+        // Try fallback if error is network-related
+        if (error.name === 'AbortError' || error.message.includes('Failed to fetch')) {
+            if (await tryFallbackSpin(stake)) {
+                return;
+            }
+        }
+        
+        showMessage('Failed to connect to game server. Please check your connection and try again.', 'error');
         
         // Reset UI on error
         isSpinning = false;
         spinButton.disabled = false;
         spinButton.innerHTML = '<i class="fas fa-dice mr-2"></i>SPIN TO WIN';
     }
+}
+
+// Try fallback spin URLs
+async function tryFallbackSpin(stake) {
+    const fallbackUrls = [
+        'https://bonnysino-3.onrender.com',
+        'https://bonnysino.onrender.com',
+        'https://bonnysino-api.onrender.com'
+    ];
+    
+    for (const fallbackUrl of fallbackUrls) {
+        try {
+            console.log('Trying fallback spin URL:', fallbackUrl);
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            
+            const response = await fetch(`${fallbackUrl}/spin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    selectedNumbers: selectedNumbers,
+                    stake: stake,
+                    userId: currentUser.id
+                }),
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                const gameResult = await response.json();
+                console.log('Fallback spin succeeded:', gameResult);
+                
+                // Update API URL for future requests
+                API_BASE_URL = fallbackUrl;
+                
+                // Process the successful result
+                processSpinResult(gameResult, stake);
+                return true;
+            }
+        } catch (error) {
+            console.log('Fallback spin failed:', fallbackUrl, error);
+        }
+    }
+    
+    return false;
+}
+
+// Process successful spin result
+function processSpinResult(gameResult, stake) {
+    // Update user balance
+    if (gameResult.newBalance !== undefined) {
+        currentUser.balance = gameResult.newBalance;
+        localStorage.setItem('bonnysino_user', JSON.stringify(currentUser));
+        updateBalanceDisplay();
+    }
+    
+    // Play spin sound
+    if (audioInitialized) {
+        playSpinSound();
+        setTimeout(() => {
+            if (audioInitialized) {
+                playTickingSound();
+            }
+        }, 500);
+    }
+    
+    // Animate wheel
+    const wheelContainer = document.getElementById('wheelContainer');
+    const targetRotation = 720 - (gameResult.winningNumber - 1) * 36;
+    wheelContainer.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+    wheelContainer.style.transform = `rotate(${targetRotation}deg)`;
+    
+    // Show result after animation
+    setTimeout(() => {
+        showResultPopup(gameResult.winningNumber, stake, gameResult.result, gameResult.payout);
+        isSpinning = false;
+        const spinButton = document.getElementById('spinButton');
+        spinButton.disabled = false;
+        spinButton.innerHTML = '<i class="fas fa-dice mr-2"></i>SPIN TO WIN';
+        
+        setTimeout(() => {
+            wheelContainer.style.transition = 'none';
+            wheelContainer.style.transform = 'rotate(0deg)';
+        }, 100);
+    }, 4000);
 }
 
 // Show result popup
@@ -850,16 +1018,41 @@ function hideLoginPrompt() {
     loginModal.classList.add('hidden');
 }
 
-// Login function
+// Login function with improved error handling
 async function login(username, password) {
     try {
-        const response = await fetch(`${API_BASE_URL}/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password })
-        });
+        // Ensure API URL is initialized
+        initializeApiUrl();
+        
+        console.log('Attempting login to:', `${API_BASE_URL}/login`);
+        
+        // Add timeout and better error handling
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        let response;
+        try {
+            response = await fetch(`${API_BASE_URL}/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            
+            // Try fallback URLs if primary fails
+            if (fetchError.name === 'AbortError' || fetchError.message.includes('Failed to fetch')) {
+                const fallbackResult = await tryFallbackLogin(username, password);
+                if (fallbackResult) {
+                    return true;
+                }
+            }
+            throw fetchError;
+        }
         
         const data = await response.json();
         
@@ -876,21 +1069,93 @@ async function login(username, password) {
         }
     } catch (error) {
         console.error('Login error:', error);
-        showMessage('Failed to connect to server', 'error');
+        showMessage('Failed to connect to server. Please check your connection and try again.', 'error');
         return false;
     }
 }
 
-// Register function
+// Try fallback login URLs
+async function tryFallbackLogin(username, password) {
+    const fallbackUrls = [
+        'https://bonnysino-3.onrender.com',
+        'https://bonnysino.onrender.com',
+        'https://bonnysino-api.onrender.com'
+    ];
+    
+    for (const fallbackUrl of fallbackUrls) {
+        try {
+            console.log('Trying fallback login URL:', fallbackUrl);
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            
+            const response = await fetch(`${fallbackUrl}/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                const data = await response.json();
+                currentUser = data.user;
+                localStorage.setItem('bonnysino_user', JSON.stringify(currentUser));
+                
+                // Update API URL for future requests
+                API_BASE_URL = fallbackUrl;
+                
+                showUserInfo();
+                hideLoginPrompt();
+                showMessage('Login successful via backup server!', 'success');
+                return true;
+            }
+        } catch (error) {
+            console.log('Fallback login failed:', fallbackUrl, error);
+        }
+    }
+    
+    return false;
+}
+
+// Register function with improved error handling
 async function register(username, momoNumber, password) {
     try {
-        const response = await fetch(`${API_BASE_URL}/register`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, momoNumber, password })
-        });
+        // Ensure API URL is initialized
+        initializeApiUrl();
+        
+        console.log('Attempting registration to:', `${API_BASE_URL}/register`);
+        
+        // Add timeout and better error handling
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        let response;
+        try {
+            response = await fetch(`${API_BASE_URL}/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, momoNumber, password }),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            
+            // Try fallback URLs if primary fails
+            if (fetchError.name === 'AbortError' || fetchError.message.includes('Failed to fetch')) {
+                const fallbackResult = await tryFallbackRegister(username, momoNumber, password);
+                if (fallbackResult) {
+                    return true;
+                }
+            }
+            throw fetchError;
+        }
         
         const data = await response.json();
         
@@ -906,9 +1171,53 @@ async function register(username, momoNumber, password) {
         }
     } catch (error) {
         console.error('Register error:', error);
-        showMessage('Failed to connect to server', 'error');
+        showMessage('Failed to connect to server. Please check your connection and try again.', 'error');
         return false;
     }
+}
+
+// Try fallback register URLs
+async function tryFallbackRegister(username, momoNumber, password) {
+    const fallbackUrls = [
+        'https://bonnysino-3.onrender.com',
+        'https://bonnysino.onrender.com',
+        'https://bonnysino-api.onrender.com'
+    ];
+    
+    for (const fallbackUrl of fallbackUrls) {
+        try {
+            console.log('Trying fallback register URL:', fallbackUrl);
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            
+            const response = await fetch(`${fallbackUrl}/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, momoNumber, password }),
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                // Update API URL for future requests
+                API_BASE_URL = fallbackUrl;
+                
+                showMessage('Registration successful via backup server! Please login.', 'success');
+                // Switch to login modal
+                document.getElementById('registerModal').classList.add('hidden');
+                document.getElementById('loginModal').classList.remove('hidden');
+                return true;
+            }
+        } catch (error) {
+            console.log('Fallback register failed:', fallbackUrl, error);
+        }
+    }
+    
+    return false;
 }
 
 // Logout function
@@ -942,7 +1251,7 @@ function initializePaystackPayment(amount, email, userId) {
     handler.openIframe();
 }
 
-// Verify payment with backend
+// Verify payment with backend with improved error handling
 async function verifyPayment(reference, userId) {
     try {
         // Ensure API URL is initialized
@@ -973,6 +1282,10 @@ async function verifyPayment(reference, userId) {
         
         while (retryCount < maxRetries) {
             try {
+                // Add timeout to prevent hanging
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 12000);
+                
                 response = await fetch(`${API_BASE_URL}/verify-payment`, {
                     method: 'POST',
                     headers: {
@@ -981,14 +1294,25 @@ async function verifyPayment(reference, userId) {
                     body: JSON.stringify({
                         reference: reference,
                         userId: userId
-                    })
+                    }),
+                    signal: controller.signal
                 });
+                
+                clearTimeout(timeoutId);
                 break; // Success, exit retry loop
             } catch (fetchError) {
+                clearTimeout(timeoutId);
                 retryCount++;
                 console.error(`Fetch attempt ${retryCount} failed:`, fetchError);
                 
                 if (retryCount >= maxRetries) {
+                    // Try fallback URLs if all retries fail
+                    if (fetchError.name === 'AbortError' || fetchError.message.includes('Failed to fetch')) {
+                        const fallbackResult = await tryFallbackVerifyPayment(reference, userId);
+                        if (fallbackResult) {
+                            return;
+                        }
+                    }
                     throw new Error(`Failed to connect to server after ${maxRetries} attempts: ${fetchError.message}`);
                 }
                 
@@ -1002,6 +1326,15 @@ async function verifyPayment(reference, userId) {
         if (!response.ok) {
             const errorText = await response.text();
             console.error('Verification error response:', errorText);
+            
+            // Try fallback URLs for server errors
+            if (response.status >= 500) {
+                const fallbackResult = await tryFallbackVerifyPayment(reference, userId);
+                if (fallbackResult) {
+                    return;
+                }
+            }
+            
             throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
 
@@ -1041,6 +1374,60 @@ async function verifyPayment(reference, userId) {
             showMessage(`Payment verification failed: ${error.message}`, 'error');
         }
     }
+}
+
+// Try fallback verification URLs
+async function tryFallbackVerifyPayment(reference, userId) {
+    const fallbackUrls = [
+        'https://bonnysino-3.onrender.com',
+        'https://bonnysino.onrender.com',
+        'https://bonnysino-api.onrender.com'
+    ];
+    
+    for (const fallbackUrl of fallbackUrls) {
+        try {
+            console.log('Trying fallback verification URL:', fallbackUrl);
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            
+            const response = await fetch(`${fallbackUrl}/verify-payment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    reference: reference,
+                    userId: userId
+                }),
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update API URL for future requests
+                    API_BASE_URL = fallbackUrl;
+                    
+                    currentUser.balance = result.newBalance;
+                    localStorage.setItem('bonnysino_user', JSON.stringify(currentUser));
+                    updateBalanceDisplay();
+                    
+                    closePaymentProcessingModal();
+                    closeDepositModal();
+                    showMessage(`Payment successful via backup server! ${result.amount} GHC added to your balance.`, 'success');
+                    return true;
+                }
+            }
+        } catch (error) {
+            console.log('Fallback verification failed:', fallbackUrl, error);
+        }
+    }
+    
+    return false;
 }
 
 // Show payment processing modal

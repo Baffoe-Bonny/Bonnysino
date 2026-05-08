@@ -36,16 +36,46 @@ function checkAdminAuth() {
     }
 }
 
-// Admin login
+// Admin login with improved error handling
 async function adminLogin(username, password) {
     try {
-        const response = await fetch('http://localhost:3000/admin/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password })
-        });
+        // Use dynamic API URL like the main app
+        let API_BASE_URL;
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            API_BASE_URL = 'http://localhost:3000';
+        } else {
+            API_BASE_URL = window.location.origin;
+        }
+        
+        console.log('Attempting admin login to:', `${API_BASE_URL}/admin/login`);
+        
+        // Add timeout and better error handling
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        let response;
+        try {
+            response = await fetch(`${API_BASE_URL}/admin/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            
+            // Try fallback URLs if primary fails
+            if (fetchError.name === 'AbortError' || fetchError.message.includes('Failed to fetch')) {
+                const fallbackResult = await tryFallbackAdminLogin(username, password);
+                if (fallbackResult) {
+                    return;
+                }
+            }
+            throw fetchError;
+        }
         
         const data = await response.json();
         
@@ -64,8 +94,55 @@ async function adminLogin(username, password) {
         }
     } catch (error) {
         console.error('Admin login error:', error);
-        showMessage('Failed to connect to server', 'error');
+        showMessage('Failed to connect to server. Please check your connection and try again.', 'error');
     }
+}
+
+// Try fallback admin login URLs
+async function tryFallbackAdminLogin(username, password) {
+    const fallbackUrls = [
+        'https://bonnysino-3.onrender.com',
+        'https://bonnysino.onrender.com',
+        'https://bonnysino-api.onrender.com'
+    ];
+    
+    for (const fallbackUrl of fallbackUrls) {
+        try {
+            console.log('Trying fallback admin login URL:', fallbackUrl);
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            
+            const response = await fetch(`${fallbackUrl}/admin/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                const data = await response.json();
+                adminToken = data.token;
+                localStorage.setItem('bonnysino_admin_token', adminToken);
+                localStorage.setItem('bonnysino_admin_user', username);
+                
+                adminUserDisplay.textContent = username;
+                showAdminDashboard();
+                loadDashboardData();
+                
+                showMessage('Login successful via backup server!', 'success');
+                return true;
+            }
+        } catch (error) {
+            console.log('Fallback admin login failed:', fallbackUrl, error);
+        }
+    }
+    
+    return false;
 }
 
 // Admin logout
@@ -99,14 +176,44 @@ async function loadDashboardData() {
     updateRecentActivity();
 }
 
-// Load users
+// Load users with improved error handling
 async function loadUsers() {
     try {
-        const response = await fetch('http://localhost:3000/admin/users', {
-            headers: {
-                'Authorization': `Bearer ${adminToken}`
+        // Use dynamic API URL like the main app
+        let API_BASE_URL;
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            API_BASE_URL = 'http://localhost:3000';
+        } else {
+            API_BASE_URL = window.location.origin;
+        }
+        
+        console.log('Loading users from:', `${API_BASE_URL}/admin/users`);
+        
+        // Add timeout and better error handling
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        let response;
+        try {
+            response = await fetch(`${API_BASE_URL}/admin/users`, {
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`
+                },
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            
+            // Try fallback URLs if primary fails
+            if (fetchError.name === 'AbortError' || fetchError.message.includes('Failed to fetch')) {
+                const fallbackResult = await tryFallbackLoadUsers();
+                if (fallbackResult) {
+                    return;
+                }
             }
-        });
+            throw fetchError;
+        }
         
         if (response.ok) {
             usersData = await response.json();
@@ -117,18 +224,87 @@ async function loadUsers() {
         }
     } catch (error) {
         console.error('Load users error:', error);
-        showMessage('Failed to connect to server', 'error');
+        showMessage('Failed to connect to server. Please check your connection and try again.', 'error');
     }
 }
 
-// Load game history
+// Try fallback load users URLs
+async function tryFallbackLoadUsers() {
+    const fallbackUrls = [
+        'https://bonnysino-3.onrender.com',
+        'https://bonnysino.onrender.com',
+        'https://bonnysino-api.onrender.com'
+    ];
+    
+    for (const fallbackUrl of fallbackUrls) {
+        try {
+            console.log('Trying fallback load users URL:', fallbackUrl);
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            
+            const response = await fetch(`${fallbackUrl}/admin/users`, {
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`
+                },
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                usersData = await response.json();
+                renderUsersTable();
+                updateStatistics();
+                showMessage('Users loaded via backup server', 'success');
+                return true;
+            }
+        } catch (error) {
+            console.log('Fallback load users failed:', fallbackUrl, error);
+        }
+    }
+    
+    return false;
+}
+
+// Load game history with improved error handling
 async function loadGameHistory() {
     try {
-        const response = await fetch('http://localhost:3000/admin/game-history', {
-            headers: {
-                'Authorization': `Bearer ${adminToken}`
+        // Use dynamic API URL like the main app
+        let API_BASE_URL;
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            API_BASE_URL = 'http://localhost:3000';
+        } else {
+            API_BASE_URL = window.location.origin;
+        }
+        
+        console.log('Loading game history from:', `${API_BASE_URL}/admin/game-history`);
+        
+        // Add timeout and better error handling
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        let response;
+        try {
+            response = await fetch(`${API_BASE_URL}/admin/game-history`, {
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`
+                },
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            
+            // Try fallback URLs if primary fails
+            if (fetchError.name === 'AbortError' || fetchError.message.includes('Failed to fetch')) {
+                const fallbackResult = await tryFallbackLoadGameHistory();
+                if (fallbackResult) {
+                    return;
+                }
             }
-        });
+            throw fetchError;
+        }
         
         if (response.ok) {
             gameHistory = await response.json();
@@ -136,17 +312,85 @@ async function loadGameHistory() {
         }
     } catch (error) {
         console.error('Load game history error:', error);
+        // Don't show error message for game history as it's not critical
     }
 }
 
-// Load statistics
+// Try fallback load game history URLs
+async function tryFallbackLoadGameHistory() {
+    const fallbackUrls = [
+        'https://bonnysino-3.onrender.com',
+        'https://bonnysino.onrender.com',
+        'https://bonnysino-api.onrender.com'
+    ];
+    
+    for (const fallbackUrl of fallbackUrls) {
+        try {
+            console.log('Trying fallback load game history URL:', fallbackUrl);
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            
+            const response = await fetch(`${fallbackUrl}/admin/game-history`, {
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`
+                },
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                gameHistory = await response.json();
+                updateStatistics();
+                return true;
+            }
+        } catch (error) {
+            console.log('Fallback load game history failed:', fallbackUrl, error);
+        }
+    }
+    
+    return false;
+}
+
+// Load statistics with improved error handling
 async function loadStatistics() {
     try {
-        const response = await fetch('http://localhost:3000/admin/statistics', {
-            headers: {
-                'Authorization': `Bearer ${adminToken}`
+        // Use dynamic API URL like the main app
+        let API_BASE_URL;
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            API_BASE_URL = 'http://localhost:3000';
+        } else {
+            API_BASE_URL = window.location.origin;
+        }
+        
+        console.log('Loading statistics from:', `${API_BASE_URL}/admin/statistics`);
+        
+        // Add timeout and better error handling
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        let response;
+        try {
+            response = await fetch(`${API_BASE_URL}/admin/statistics`, {
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`
+                },
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            
+            // Try fallback URLs if primary fails
+            if (fetchError.name === 'AbortError' || fetchError.message.includes('Failed to fetch')) {
+                const fallbackResult = await tryFallbackLoadStatistics();
+                if (fallbackResult) {
+                    return;
+                }
             }
-        });
+            throw fetchError;
+        }
         
         if (response.ok) {
             const stats = await response.json();
@@ -157,7 +401,48 @@ async function loadStatistics() {
         }
     } catch (error) {
         console.error('Load statistics error:', error);
+        // Don't show error message for statistics as it's not critical
     }
+}
+
+// Try fallback load statistics URLs
+async function tryFallbackLoadStatistics() {
+    const fallbackUrls = [
+        'https://bonnysino-3.onrender.com',
+        'https://bonnysino.onrender.com',
+        'https://bonnysino-api.onrender.com'
+    ];
+    
+    for (const fallbackUrl of fallbackUrls) {
+        try {
+            console.log('Trying fallback load statistics URL:', fallbackUrl);
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            
+            const response = await fetch(`${fallbackUrl}/admin/statistics`, {
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`
+                },
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                const stats = await response.json();
+                totalUsers.textContent = stats.totalUsers;
+                totalBalance.textContent = `${stats.totalBalance.toFixed(2)} GHC`;
+                totalWins.textContent = stats.totalWins;
+                totalSpins.textContent = stats.totalSpins;
+                return true;
+            }
+        } catch (error) {
+            console.log('Fallback load statistics failed:', fallbackUrl, error);
+        }
+    }
+    
+    return false;
 }
 
 // Render users table
@@ -298,17 +583,47 @@ function showBalanceModal(userId) {
     balanceModal.classList.remove('hidden');
 }
 
-// Adjust user balance
+// Adjust user balance with improved error handling
 async function adjustBalance(userId, type, amount) {
     try {
-        const response = await fetch('http://localhost:3000/admin/adjust-balance', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${adminToken}`
-            },
-            body: JSON.stringify({ userId, type, amount })
-        });
+        // Use dynamic API URL like the main app
+        let API_BASE_URL;
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            API_BASE_URL = 'http://localhost:3000';
+        } else {
+            API_BASE_URL = window.location.origin;
+        }
+        
+        console.log('Adjusting balance via:', `${API_BASE_URL}/admin/adjust-balance`);
+        
+        // Add timeout and better error handling
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        let response;
+        try {
+            response = await fetch(`${API_BASE_URL}/admin/adjust-balance`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${adminToken}`
+                },
+                body: JSON.stringify({ userId, type, amount }),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            
+            // Try fallback URLs if primary fails
+            if (fetchError.name === 'AbortError' || fetchError.message.includes('Failed to fetch')) {
+                const fallbackResult = await tryFallbackAdjustBalance(userId, type, amount);
+                if (fallbackResult) {
+                    return;
+                }
+            }
+            throw fetchError;
+        }
         
         const data = await response.json();
         
@@ -321,8 +636,49 @@ async function adjustBalance(userId, type, amount) {
         }
     } catch (error) {
         console.error('Adjust balance error:', error);
-        showMessage('Failed to connect to server', 'error');
+        showMessage('Failed to connect to server. Please check your connection and try again.', 'error');
     }
+}
+
+// Try fallback adjust balance URLs
+async function tryFallbackAdjustBalance(userId, type, amount) {
+    const fallbackUrls = [
+        'https://bonnysino-3.onrender.com',
+        'https://bonnysino.onrender.com',
+        'https://bonnysino-api.onrender.com'
+    ];
+    
+    for (const fallbackUrl of fallbackUrls) {
+        try {
+            console.log('Trying fallback adjust balance URL:', fallbackUrl);
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            
+            const response = await fetch(`${fallbackUrl}/admin/adjust-balance`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${adminToken}`
+                },
+                body: JSON.stringify({ userId, type, amount }),
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                showMessage('Balance adjusted successfully via backup server', 'success');
+                balanceModal.classList.add('hidden');
+                loadUsers(); // Refresh users data
+                return true;
+            }
+        } catch (error) {
+            console.log('Fallback adjust balance failed:', fallbackUrl, error);
+        }
+    }
+    
+    return false;
 }
 
 // Show message (same as main app)
