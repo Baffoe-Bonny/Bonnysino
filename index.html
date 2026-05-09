@@ -125,7 +125,7 @@
             border-right: min(15px, 4vw) solid transparent;
             border-top: min(40px, 10vw) solid var(--gold);
             filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
-            z-index: 100;
+            z-index: 99999;
         }
         
         .wheel-pointer::before {
@@ -150,7 +150,7 @@
             background: radial-gradient(circle, rgba(255, 215, 0, 0.6) 0%, transparent 70%);
             border-radius: 50%;
             animation: pointerGlow 2s ease-in-out infinite;
-            z-index: 99;
+            z-index: 99998;
         }
         
         @keyframes pointerGlow {
@@ -309,6 +309,7 @@
                 border-top-width: 25px;
                 display: block !important;
                 visibility: visible !important;
+                z-index: 99999 !important;
             }
             
             /* Grid layout adjustments - stack vertically with more space */
@@ -409,11 +410,13 @@
                 border-top-width: 20px;
                 display: block !important;
                 visibility: visible !important;
+                z-index: 99999 !important;
             }
             
             .wheel-pointer-glow {
                 display: block !important;
                 visibility: visible !important;
+                z-index: 99998 !important;
             }
             
             .feature-card {
