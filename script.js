@@ -134,34 +134,48 @@ async function tryFallbackUrls() {
     console.error('All fallback URLs failed');
 }
 
-// Select a number
+// Select a number - simple working solution
 function selectNumber(number) {
     console.log('Number clicked:', number);
     
-    // Find the wheel number element
-    const wheelNumberElement = document.querySelector(`.wheel-number[data-number="${number}"]`);
-    
+    // Simple toggle logic
     if (selectedNumbers.includes(number)) {
-        // Number is already selected, remove it
+        // Remove number
         selectedNumbers = selectedNumbers.filter(n => n !== number);
-        if (wheelNumberElement) {
-            wheelNumberElement.classList.remove('selected');
-        }
-        console.log('Deselected number:', number);
+        console.log('Deselected:', number);
     } else if (selectedNumbers.length < MAX_SELECTIONS) {
-        // Add the number to the selection
+        // Add number
         selectedNumbers.push(number);
-        if (wheelNumberElement) {
-            wheelNumberElement.classList.add('selected');
-        }
-        console.log('Selected number:', number);
+        console.log('Selected:', number);
     } else {
         showMessage('Maximum 2 numbers allowed', 'error');
         return;
     }
     
-    console.log('Selected numbers:', selectedNumbers);
+    // Update all wheel numbers visually
+    updateWheelNumbersVisual();
+    
+    // Update display
     updateSelectedDisplay();
+    
+    console.log('Current selections:', selectedNumbers);
+}
+
+// Update wheel numbers visual state
+function updateWheelNumbersVisual() {
+    const wheelNumbers = document.querySelectorAll('.wheel-number');
+    wheelNumbers.forEach(element => {
+        const num = parseInt(element.dataset.number);
+        if (selectedNumbers.includes(num)) {
+            element.classList.add('selected');
+            element.style.background = 'var(--gold)';
+            element.style.color = '#000';
+        } else {
+            element.classList.remove('selected');
+            element.style.background = 'radial-gradient(circle, #2a2a2a 0%, #1a1a1a 100%)';
+            element.style.color = '#fff';
+        }
+    });
 }
 
 // Get selected numbers
@@ -513,35 +527,11 @@ function initializeWheel() {
                 numberDiv.classList.add('selected');
             }
             
-            // Add multiple click methods for maximum compatibility
-            numberDiv.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Wheel number clicked:', num);
+            // Simple click event
+            numberDiv.addEventListener('click', () => {
+                console.log('Number clicked:', num);
                 selectNumber(num);
             });
-            
-            numberDiv.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Wheel number mousedown:', num);
-                selectNumber(num);
-            });
-            
-            numberDiv.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Wheel number touchstart:', num);
-                selectNumber(num);
-            });
-            
-            // Also add onclick as fallback
-            numberDiv.onclick = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Wheel number onclick:', num);
-                selectNumber(num);
-            };
             
             wheelContainer.appendChild(numberDiv);
         });
