@@ -116,9 +116,9 @@
         
         .wheel-pointer {
             position: absolute;
-            top: min(-40px, -10vw);
+            top: 0;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translateX(-50%) translateY(-50%);
             width: 0;
             height: 0;
             border-left: min(15px, 4vw) solid transparent;
@@ -131,7 +131,7 @@
         .wheel-pointer::before {
             content: '';
             position: absolute;
-            top: min(-35px, -8vw);
+            top: min(-30px, -7vw);
             left: min(-8px, -2vw);
             width: min(16px, 4vw);
             height: min(16px, 4vw);
@@ -142,7 +142,7 @@
         
         .wheel-pointer-glow {
             position: absolute;
-            top: min(-65px, -15vw);
+            top: min(-20px, -5vw);
             left: 50%;
             transform: translateX(-50%);
             width: min(40px, 10vw);
@@ -372,6 +372,26 @@
             .money-decoration {
                 display: none;
             }
+            
+            /* Paystack button mobile fixes */
+            #paystackPayBtn {
+                display: block !important;
+                visibility: visible !important;
+                z-index: 1000 !important;
+                position: relative !important;
+                font-size: min(1rem, 4vw) !important;
+                padding: min(12px, 3vw) !important;
+            }
+            
+            /* Deposit modal mobile fixes */
+            #depositModal {
+                z-index: 9999 !important;
+            }
+            
+            #depositModal .bg-gray-900 {
+                z-index: 9999 !important;
+                position: relative !important;
+            }
         }
         
         @media (max-width: 480px) {
@@ -439,6 +459,16 @@
             /* Button text adjustments */
             button span {
                 display: none;
+            }
+            
+            /* Paystack button extra small mobile fixes */
+            #paystackPayBtn {
+                display: block !important;
+                visibility: visible !important;
+                z-index: 1000 !important;
+                position: relative !important;
+                font-size: min(0.9rem, 3.5vw) !important;
+                padding: min(10px, 2.5vw) !important;
             }
         }
     </style>

@@ -39,6 +39,25 @@ try {
     console.log('Audio initialization failed:', error);
 }
 
+// Check if Paystack script is loaded
+function checkPaystackLoaded() {
+    if (typeof PaystackPop === 'undefined') {
+        console.warn('Paystack not loaded, reloading...');
+        // Reload the Paystack script
+        const script = document.createElement('script');
+        script.src = 'https://js.paystack.co/v1/inline.js';
+        script.onload = function() {
+            console.log('Paystack script loaded successfully');
+        };
+        script.onerror = function() {
+            console.error('Failed to load Paystack script');
+        };
+        document.head.appendChild(script);
+        return false;
+    }
+    return true;
+}
+
 // Initialize API URL based on environment with better fallback logic
 function initializeApiUrl() {
     // Check if we're in development (localhost) or production
@@ -1231,24 +1250,42 @@ function logout() {
 
 // Paystack payment functions
 function initializePaystackPayment(amount, email, userId) {
-    const handler = PaystackPop.setup({
-        key: 'pk_test_44c5b335a08c29cd8e74d58346b52615d139d210', // User's actual test public key
-        email: email,
-        amount: amount * 100, // Convert to kobo
-        currency: 'GHS',
-        ref: 'BONNYSINO_' + Math.floor(Math.random() * 1000000000 + 1), // Generate unique reference
-        callback: function(response) {
-            // Payment successful - verify with backend
-            verifyPayment(response.reference, userId);
-        },
-        onClose: function() {
-            // Payment modal closed
-            closePaymentProcessingModal();
-            showMessage('Payment cancelled', 'error');
-        }
-    });
+    console.log('Initializing Paystack payment...');
     
-    handler.openIframe();
+    // Check if Paystack is loaded, if not, try to reload it
+    if (!checkPaystackLoaded()) {
+        showMessage('Payment system is loading. Please try again in a moment.', 'error');
+        closePaymentProcessingModal();
+        return;
+    }
+    
+    try {
+        const handler = PaystackPop.setup({
+            key: 'pk_test_44c5b335a08c29cd8e74d58346b52615d139d210', // User's actual test public key
+            email: email,
+            amount: amount * 100, // Convert to kobo
+            currency: 'GHS',
+            ref: 'BONNYSINO_' + Math.floor(Math.random() * 1000000000 + 1), // Generate unique reference
+            callback: function(response) {
+                console.log('Payment successful, reference:', response.reference);
+                // Payment successful - verify with backend
+                verifyPayment(response.reference, userId);
+            },
+            onClose: function() {
+                console.log('Payment modal closed');
+                // Payment modal closed
+                closePaymentProcessingModal();
+                showMessage('Payment cancelled', 'error');
+            }
+        });
+        
+        console.log('Opening Paystack iframe...');
+        handler.openIframe();
+    } catch (error) {
+        console.error('Error initializing Paystack:', error);
+        showMessage('Failed to initialize payment. Please try again.', 'error');
+        closePaymentProcessingModal();
+    }
 }
 
 // Verify payment with backend with improved error handling
