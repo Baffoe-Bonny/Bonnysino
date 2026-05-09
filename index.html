@@ -116,9 +116,9 @@
         
         .wheel-pointer {
             position: absolute;
-            top: 0;
+            top: min(-35px, -8vw);
             left: 50%;
-            transform: translateX(-50%) translateY(-50%);
+            transform: translateX(-50%);
             width: 0;
             height: 0;
             border-left: min(15px, 4vw) solid transparent;
@@ -131,7 +131,7 @@
         .wheel-pointer::before {
             content: '';
             position: absolute;
-            top: min(-30px, -7vw);
+            top: min(-40px, -9vw);
             left: min(-8px, -2vw);
             width: min(16px, 4vw);
             height: min(16px, 4vw);
@@ -142,7 +142,7 @@
         
         .wheel-pointer-glow {
             position: absolute;
-            top: min(-20px, -5vw);
+            top: min(-60px, -15vw);
             left: 50%;
             transform: translateX(-50%);
             width: min(40px, 10vw);
