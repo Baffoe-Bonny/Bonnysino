@@ -116,14 +116,14 @@
         
         .wheel-pointer {
             position: absolute;
-            top: -60px;
+            top: min(-60px, -15vw);
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 40px solid var(--gold);
+            border-left: min(15px, 4vw) solid transparent;
+            border-right: min(15px, 4vw) solid transparent;
+            border-top: min(40px, 10vw) solid var(--gold);
             filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
             z-index: 100;
         }
@@ -131,10 +131,10 @@
         .wheel-pointer::before {
             content: '';
             position: absolute;
-            top: -45px;
-            left: -8px;
-            width: 16px;
-            height: 16px;
+            top: min(-45px, -12vw);
+            left: min(-8px, -2vw);
+            width: min(16px, 4vw);
+            height: min(16px, 4vw);
             background: var(--gold);
             border-radius: 50%;
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
@@ -142,11 +142,11 @@
         
         .wheel-pointer-glow {
             position: absolute;
-            top: -85px;
+            top: min(-85px, -20vw);
             left: 50%;
             transform: translateX(-50%);
-            width: 40px;
-            height: 40px;
+            width: min(40px, 10vw);
+            height: min(40px, 10vw);
             background: radial-gradient(circle, rgba(255, 215, 0, 0.6) 0%, transparent 70%);
             border-radius: 50%;
             animation: pointerGlow 2s ease-in-out infinite;
