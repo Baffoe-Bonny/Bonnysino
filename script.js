@@ -551,60 +551,7 @@ function initializeWheel() {
     });
 }
 
-// Select a number
-function selectNumber(num) {
-    if (isSpinning) return;
-    
-    // Initialize audio on first user interaction
-    if (!audioInitialized) {
-        initializeAudio();
-        startBackgroundMusic();
-    }
-    
-    const selectedElement = document.querySelector(`[data-number="${num}"]`);
-    const index = selectedNumbers.indexOf(num);
-    
-    if (index > -1) {
-        // Deselect if already selected
-        selectedNumbers.splice(index, 1);
-        selectedElement.classList.remove('selected');
-    } else if (selectedNumbers.length < MAX_SELECTIONS) {
-        // Select if under limit
-        selectedNumbers.push(num);
-        selectedElement.classList.add('selected');
-    } else {
-        // Replace oldest selection if at limit
-        const oldNumber = selectedNumbers.shift();
-        const oldElement = document.querySelector(`[data-number="${oldNumber}"]`);
-        oldElement.classList.remove('selected');
-        
-        selectedNumbers.push(num);
-        selectedElement.classList.add('selected');
-    }
-    
-    updateSelectedNumberDisplay();
-}
-
-// Update selected number display
-function updateSelectedNumberDisplay() {
-    const display = document.getElementById('selectedNumber');
-    if (selectedNumbers.length > 0) {
-        let html = '<div class="flex justify-center gap-4">';
-        selectedNumbers.forEach(num => {
-            html += `
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-yellow-400">${num}</div>
-                    <div class="text-sm text-yellow-300">x${multipliers[num]}</div>
-                </div>
-            `;
-        });
-        html += '</div>';
-        html += `<div class="text-sm text-gray-300 mt-2">${selectedNumbers.length}/${MAX_SELECTIONS} selected</div>`;
-        display.innerHTML = html;
-    } else {
-        display.innerHTML = '<div class="text-xl text-gray-400">Select up to 2 numbers</div>';
-    }
-}
+// Spin the wheel with improved error handling
 
 // Spin the wheel with improved error handling
 async function spinWheel() {
