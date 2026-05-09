@@ -17,28 +17,6 @@ let selectedNumbers = [];
 let isSpinning = false;
 const MAX_SELECTIONS = 2;
 
-// Professional Beat Audio System
-let audioContext;
-let audioInitialized = false;
-let beatInterval;
-let isPlaying = false;
-
-// Initialize audio after user interaction
-function initializeAudio() {
-    if (audioInitialized) return;
-    
-    // Initialize API URL when DOM is ready
-    initializeApiUrl();
-}
-
-try {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    audioInitialized = true;
-    console.log('Audio initialized successfully');
-} catch (error) {
-    console.log('Audio initialization failed:', error);
-}
-
 // Check if Paystack script is loaded
 function checkPaystackLoaded() {
     if (typeof PaystackPop === 'undefined') {
@@ -156,72 +134,109 @@ async function tryFallbackUrls() {
     console.error('All fallback URLs failed');
 }
 
-// Play professional background beat
-function startBackgroundMusic() {
-    if (!audioInitialized || isPlaying) return;
+// Select a number
+function selectNumber(number) {
+    console.log('Number clicked:', number);
     
-    try {
-        isPlaying = true;
-        const tempo = 128; // Professional beat tempo
-        const beatTime = 60000 / tempo; // Convert BPM to milliseconds
-        
-        // Create a simple, stable beat pattern
-        beatInterval = setInterval(() => {
-            if (!isPlaying) {
-                clearInterval(beatInterval);
-                return;
-            }
-            
-            // Kick drum (every beat)
-            playKick();
-            
-            // Hi-hat (off-beats)
-            setTimeout(() => playHiHat(), beatTime * 0.5);
-            
-            // Snare (beats 2 and 4)
-            if (Date.now() % (beatTime * 2) < beatTime) {
-                setTimeout(() => playSnare(), beatTime);
-            }
-        }, beatTime);
-        
-    } catch (error) {
-        console.log('Background music failed:', error);
-        isPlaying = false;
+    // Find the wheel number element
+    const wheelNumberElement = document.querySelector(`.wheel-number[data-number="${number}"]`);
+    
+    if (selectedNumbers.includes(number)) {
+        // Number is already selected, remove it
+        selectedNumbers = selectedNumbers.filter(n => n !== number);
+        if (wheelNumberElement) {
+            wheelNumberElement.classList.remove('selected');
+        }
+        console.log('Deselected number:', number);
+    } else if (selectedNumbers.length < MAX_SELECTIONS) {
+        // Add the number to the selection
+        selectedNumbers.push(number);
+        if (wheelNumberElement) {
+            wheelNumberElement.classList.add('selected');
+        }
+        console.log('Selected number:', number);
+    } else {
+        showMessage('Maximum 2 numbers allowed', 'error');
+        return;
+    }
+    
+    console.log('Selected numbers:', selectedNumbers);
+    updateSelectedDisplay();
+}
+
+// Get selected numbers
+function getSelectedNumbers() {
+    return selectedNumbers;
+}
+
+// Update selected numbers display
+function updateSelectedDisplay() {
+    const display = document.getElementById('selectedDisplay');
+    if (selectedNumbers.length > 0) {
+        let html = '<div class="flex flex-wrap gap-2 justify-center">';
+        selectedNumbers.forEach(num => {
+            html += `<div class="bg-yellow-400 text-black px-3 py-1 rounded-full font-bold">${num}</div>`;
+        });
+        html += '</div>';
+        html += `<div class="text-sm text-gray-300 mt-2">${selectedNumbers.length}/${MAX_SELECTIONS} selected</div>`;
+        display.innerHTML = html;
+    } else {
+        display.innerHTML = '<div class="text-xl text-gray-400">Select up to 2 numbers</div>';
     }
 }
 
-// Stop background music
-function stopBackgroundMusic() {
-    isPlaying = false;
-    if (beatInterval) {
-        clearInterval(beatInterval);
-        beatInterval = null;
+// Spin the wheel with improved error handling
+async function spinWheel() {
+    console.log('Spin button clicked!');
+    console.log('isSpinning:', isSpinning);
+    console.log('currentUser:', currentUser);
+    
+    if (isSpinning) return;
+    
+    if (!currentUser) {
+        showMessage('Please login to spin', 'error');
+        return;
     }
-}
-
-// Play kick drum sound
-function playKick() {
-    if (!audioInitialized) return;
+    
+    const selectedNumbers = getSelectedNumbers();
+    const stake = parseFloat(document.getElementById('stakeInput').value);
+    
+    console.log('Selected numbers:', selectedNumbers);
+    console.log('Stake:', stake);
+    console.log('Current balance:', currentUser.balance);
+    
+    if (selectedNumbers.length === 0) {
+        showMessage('Please select at least one number', 'error');
+        return;
+    }
+    
+    if (!stake || stake <= 0) {
+        showMessage('Please enter a valid stake amount', 'error');
+        return;
+    }
+    
+    if (stake > currentUser.balance) {
+        showMessage('Insufficient balance', 'error');
+        return;
+    }
+    
+    isSpinning = true;
+    const spinButton = document.getElementById('spinButton');
+    spinButton.disabled = true;
+    spinButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>SPINNING...';
     
     try {
-        const osc = audioContext.createOscillator();
-        const gain = audioContext.createGain();
-        
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(60, audioContext.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(30, audioContext.currentTime + 0.1);
-        
-        gain.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-        
-        osc.connect(gain);
-        gain.connect(audioContext.destination);
-        
-        osc.start();
-        osc.stop(audioContext.currentTime + 0.1);
+        // Use local fallback for immediate response
+        tryLocalSpinFallback(stake);
         
     } catch (error) {
-        console.log('Kick sound failed:', error);
+        console.error('Error in spin:', error);
+        showMessage('Spin failed. Please try again.', 'error');
+        
+        // Reset UI on error
+        isSpinning = false;
+        spinButton.disabled = false;
+        spinButton.innerHTML = '<i class="fas fa-dice mr-2"></i>SPIN TO WIN';
     }
 }
 
@@ -498,7 +513,36 @@ function initializeWheel() {
                 numberDiv.classList.add('selected');
             }
             
-            numberDiv.addEventListener('click', () => selectNumber(num));
+            // Add multiple click methods for maximum compatibility
+            numberDiv.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Wheel number clicked:', num);
+                selectNumber(num);
+            });
+            
+            numberDiv.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Wheel number mousedown:', num);
+                selectNumber(num);
+            });
+            
+            numberDiv.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Wheel number touchstart:', num);
+                selectNumber(num);
+            });
+            
+            // Also add onclick as fallback
+            numberDiv.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Wheel number onclick:', num);
+                selectNumber(num);
+            };
+            
             wheelContainer.appendChild(numberDiv);
         });
         
@@ -574,10 +618,23 @@ function updateSelectedNumberDisplay() {
 
 // Spin the wheel with improved error handling
 async function spinWheel() {
+    console.log('Spin button clicked!');
+    console.log('isSpinning:', isSpinning);
+    console.log('currentUser:', currentUser);
+    
     if (isSpinning) return;
+    
+    if (!currentUser) {
+        showMessage('Please login to spin', 'error');
+        return;
+    }
     
     const selectedNumbers = getSelectedNumbers();
     const stake = parseFloat(document.getElementById('stakeInput').value);
+    
+    console.log('Selected numbers:', selectedNumbers);
+    console.log('Stake:', stake);
+    console.log('Current balance:', currentUser.balance);
     
     if (selectedNumbers.length === 0) {
         showMessage('Please select at least one number', 'error');
@@ -1640,13 +1697,22 @@ function showMessage(message, type) {
 document.addEventListener('DOMContentLoaded', () => {
     initializeWheel();
     
-    // Attempt auto-play for background music
-    attemptAutoPlay();
-    
     // Check authentication status
     checkAuthStatus();
     
-    document.getElementById('spinButton').addEventListener('click', spinWheel);
+    // Fix spin button once and for all
+    const spinButton = document.getElementById('spinButton');
+    if (spinButton) {
+        console.log('Spin button found, attaching event listener...');
+        spinButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Spin button clicked!');
+            spinWheel();
+        });
+        console.log('Spin button event listener attached successfully');
+    } else {
+        console.error('Spin button not found!');
+    }
     
     document.getElementById('stakeInput').addEventListener('input', (e) => {
         const value = parseFloat(e.target.value);
@@ -1665,6 +1731,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+        
     // Authentication event listeners
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
